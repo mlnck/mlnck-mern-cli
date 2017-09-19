@@ -1,0 +1,36 @@
+{
+  "name": "mlnck-mern-cli",
+  "version": "0.0.1",
+  "description": "CLI for use with mlnck-mern boilerplate",
+  "bin": {
+    "mlnck-mern": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mlnck/mlnck-mern-cli.git"
+  },
+  "keywords": [
+    "mern",
+    "mongo",
+    "express",
+    "react",
+    "node",
+    "redux"
+  ],
+  "author": "mlnck",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mlnck/mlnck-mern-cli/issues"
+  },
+  "homepage": "https://github.com/mlnck/mlnck-mern-cli#readme",
+  "dependencies": {
+    "chalk": "^2.1.0",
+    "co": "^4.6.0",
+    "co-prompt": "^1.0.0",
+    "commander": "^2.11.0"
+  }
+}
