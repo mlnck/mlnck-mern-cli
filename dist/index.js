@@ -22,6 +22,7 @@ mlnckMern
       console.log('creating/setup for project named %s', projectName);
       console.log('   with sample: %s', sample);
       console.log('   add optional: %s', optional);
+      process.exit(0);
     });
   });
 
@@ -33,6 +34,7 @@ mlnckMern
     co(function *() {
       var bool = yield prompt.confirm('remove sample files: ');
       console.log('removing files:',bool);
+      process.exit(0);
     });
   });
 
@@ -44,6 +46,7 @@ mlnckMern
     co(function *() {
       var bool = yield prompt.confirm('include optional files: ');
       console.log('including files:',bool);
+      process.exit(0);
     });
   });
 
@@ -75,6 +78,7 @@ mlnckMern
       console.log('   dispatch: %s', dispatch);
       console.log('   saga: %s', saga);
       console.log('   styled: %s', styled);
+      process.exit(0);
     });
   });
 
@@ -105,6 +109,7 @@ mlnckMern
       console.log('   dispatch: %s', dispatch);
       console.log('   saga: %s', saga);
       console.log('   styled: %s', styled);
+      process.exit(0);
     });
   });
 
@@ -136,6 +141,7 @@ mlnckMern
       console.log('   nested: %s', nested);
       console.log('   loadkey: %s', loadkey);
       console.log('   loadfnc: %s', loadfnc);
+      process.exit(0);
     });
   });
 
@@ -155,6 +161,7 @@ mlnckMern
       console.log('creating server route: %s', name);
       console.log('   controller: %s', controller);
       console.log('   schema: %s', schema);
+      process.exit(0);
     });
   });
 
@@ -166,6 +173,7 @@ mlnckMern
   .action(function(name){
     co(function *() {
       console.log('creating server:',name);
+      process.exit(0);
     });
   });
 
@@ -177,6 +185,7 @@ mlnckMern
   .action(function(name){
     co(function *() {
       console.log('creating schema:',name);
+      process.exit(0);
     });
   });
 
