@@ -10,7 +10,7 @@ var chalk = require('chalk'),
 mlnckMern
   .version('0.0.1');
 
-mlnckMern
+mlnckMern //fs.rename //fs.rmdir
   .command('create-project')
   .alias('create')
   .description('create new mlnck-mern project')
@@ -36,7 +36,7 @@ mlnckMern
   .description('remove smaple files and logs which may have been initially installed')
   .action(function(name){
     co(function *() {
-      var bool = yield prompt.confirm('remove sample files: (y)');
+      var bool = yield prompt.confirm('remove sample files: (n)');
       console.log('removing files:',bool);
       if(bool)
       { removeSample(); }
