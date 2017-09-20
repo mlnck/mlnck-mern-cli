@@ -1,7 +1,11 @@
 #!/usr/bin/env node --harmony
-var co = require('co'),
+'use strict'
+
+var chalk = require('chalk'),
+    co = require('co'),
     prompt = require('co-prompt'),
-    mlnckMern = require('commander');
+    mlnckMern = require('commander'),
+    removeSample = require('./commands/remove-sample');
 
 mlnckMern
   .version('0.0.1');
@@ -32,8 +36,11 @@ mlnckMern
   .description('remove smaple files and logs which may have been initially installed')
   .action(function(name){
     co(function *() {
-      var bool = yield prompt.confirm('remove sample files: ');
+      var bool = yield prompt.confirm('remove sample files: (y)');
       console.log('removing files:',bool);
+      if(bool)
+      { removeSample(); }
+      else{ console.log(chalk.yellow.bold('Files not removed')); }
       process.exit(0);
     });
   });
