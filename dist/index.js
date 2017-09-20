@@ -10,14 +10,18 @@ mlnckMern
   .command('create-project')
   .alias('create')
   .description('create new mlnck-mern project')
-  .arguments('<project-name> [install-sample]')
+  .arguments('<project-name> [install-sample] [add-optional]')
   .option('-i --install-sample <sample>', 'install sample project', /^(yes|no)$/i, 'yes')
+  .option('-a --add-optional <optional>', 'add optional components', /^(yes|no)$/i, 'no')
   .action(function(projectName){
     co(function *() {
       var sample = yield prompt('install sample project (yes): '),
+          optional = yield prompt('add optional components (no): ');
       sample = (sample.length) ? sample : 'yes';
+      optional = (optional.length) ? optional : 'no';
       console.log('creating/setup for project named %s', projectName);
       console.log('   with sample: %s', sample);
+      console.log('   add optional: %s', optional);
     });
   });
 
@@ -157,6 +161,7 @@ mlnckMern
 mlnckMern
   .command('create-server-controller')
   .alias('controller')
+  .arguments('<name>')
   .description('create server side controller')
   .action(function(name){
     co(function *() {
@@ -167,6 +172,7 @@ mlnckMern
 mlnckMern
   .command('create-server-schema')
   .alias('schema')
+  .arguments('<name>')
   .description('create server side schema')
   .action(function(name){
     co(function *() {

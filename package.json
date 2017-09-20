@@ -7,7 +7,7 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "test": "test"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -32,5 +32,8 @@
     "co": "^4.6.0",
     "co-prompt": "^1.0.0",
     "commander": "^2.11.0"
+  },
+  "devDependencies": {
+    "jest": "^21.1.0"
   }
 }
