@@ -7,14 +7,17 @@ mlnckMern
   .version('0.0.1');
 
 mlnckMern
-  .command('create-project [name]')
+  .command('create-project')
   .alias('create')
   .description('create new mlnck-mern project')
-  .option("-n, --name [name]", "Project's name")
-  .action(function(name){
+  .arguments('<project-name> [install-sample]')
+  .option('-i --install-sample <sample>', 'install sample project', /^(yes|no)$/i, 'yes')
+  .action(function(projectName){
     co(function *() {
-      var name = yield prompt('project name: ');
-      console.log('creating/setup for project named %s', name);
+      var sample = yield prompt('install sample project (yes): '),
+      sample = (sample.length) ? sample : 'yes';
+      console.log('creating/setup for project named %s', projectName);
+      console.log('   with sample: %s', sample);
     });
   });
 
