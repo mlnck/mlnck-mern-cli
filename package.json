@@ -12,6 +12,9 @@
     "test": "jest --coverage",
     "test:clean": "rimraf ./coverage"
   },
+  "pre-commit": [
+    "lint"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mlnck/mlnck-mern-cli.git"
