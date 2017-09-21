@@ -1,5 +1,3 @@
-
-
 const chalk = require('chalk'),
   fs = require('fs'),
   basePath = process.env.PWD;
