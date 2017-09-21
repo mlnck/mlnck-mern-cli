@@ -44,7 +44,7 @@ function removeTextFromFiles(s)
     strippedData = strippedData.replace(/,\s.*{.*'\/s.*[\s\S]*?][\s\S]*?}/g,'')//clean up routes
     strippedData = strippedData.replace("navTitle: 'Skeleton Default',","navTitle: 'Mlnck Mern',")//one off for header component
     strippedData = strippedData.replace(/.*skeleton.*[\s\S]*bark.*[\s\S].;/g,'')//one off for helper tests
-    strippedData = strippedData.replace(/.*ton\.c*[\s\S]*?}\);/g,'')//one off for helper tests
+    strippedData = strippedData.replace(/.*ton\.crea*[\s\S]*?}\);/g,'')//one off for helper tests
     strippedData = strippedData.replace(/\/\*\* s.*[\s\S]*?end_.*\*\//g,''); //remove commented sections
     strippedData = strippedData.replace(/<d.*optional-helper-text[\s\S]*?v>/g,''); //remove skeleton divs
     strippedData = strippedData.replace(/<st.*[\s\S]*optional-helper-text[\s\S]*?e>/g,''); //remove skeleton styles
@@ -69,7 +69,7 @@ function removeSampleElements(s)
       files = fs.readdirSync(path);
       files.forEach(function(file,index){
         let curPath = path + "/" + file;
-        if(fs.lstatSync(curPath).isDirectory()) { // recurse
+        if(fs.statSync(curPath).isDirectory()) { // recurse
           deleteFolderRecursive(curPath);
         } else { // delete file
           fs.unlinkSync(curPath);
@@ -81,14 +81,11 @@ function removeSampleElements(s)
 
   console.log(chalk.magenta('removing sample file/directory: ')+chalk.underline(s));
 
-  if( fs.existsSync(basePath+s) )
-  {
-    if( fs.statSync(basePath+s).isFile() )
-    { fs.unlinkSync(basePath+s); }
+  if( fs.existsSync(basePath+s) && fs.statSync(basePath+s).isFile() )
+  { fs.unlinkSync(basePath+s); }
 
-    if( fs.statSync(basePath+s).isDirectory() )
-    { deleteFolderRecursive(basePath+s); }
-  }
+  if( fs.existsSync(basePath+s) && fs.statSync(basePath+s).isDirectory() )
+  { deleteFolderRecursive(basePath+s); }
 
   if(rmrf.length)
   { removeSampleElements(rmrf.pop()); }
