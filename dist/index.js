@@ -6,16 +6,30 @@ const chalk = require('chalk'),
   prompt = require('co-prompt'),
   mlnckMern = require('commander'),
 
-  removeSample = require('./commands/remove-sample'),
-  installStack = require('./commands/install-stack');
+  gitPull = require('./commands/git-pull.js'),
+  installStack = require('./commands/install-stack'),
+  removeSample = require('./commands/remove-sample');
 
 mlnckMern
   .version('0.0.1');
 
 mlnckMern
+  .command('new')
+  .description('install new mlnck-mern project')
+  .arguments('<project-name>')
+  .action((projectName) =>
+  {
+    co(function* iproj()
+    {
+      gitPull(projectName);
+      process.exit(0);
+    });
+  });
+
+mlnckMern
   .command('create-project')
   .alias('create')
-  .description('create new mlnck-mern project')
+  .description('configure initial settings of currently installed mlnck-mern project')
   .arguments('[install-sample] [add-optional]')
   .option('-a --author <author>', 'author')
   .option('-i --install-sample <sample>', 'install sample project', /^(yes|no)$/i, 'yes')
