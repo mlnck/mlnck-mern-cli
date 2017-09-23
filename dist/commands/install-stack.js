@@ -1,9 +1,6 @@
-/*
-"slate": "rimraf node_modules && yarn",
-    "start":"echo Please install:; echo  --  mlnck-mern-cli; echo and then run:; echo -- mlnck-mern create your-project-name-here; echo ; echo ; echo ;",
-*/
 const chalk = require('chalk'),
   fs = require('fs'),
+  sh = require('shelljs'),
   { delDir } = require('../utils'),
   removeSample = require('./remove-sample'),
 
@@ -17,9 +14,6 @@ function installStack(a, s, o)
   userOpts = { a, s, o, n: projName };
   console.log(chalk.green.bgBlackBright.bold(' creating project %s'), userOpts.n);
 
-  console.log(chalk.magenta('removing .git '));
-  if(fs.existsSync(`${basePath}/.git`) && fs.statSync(`${basePath}/.git`).isDirectory())
-  { delDir(`${basePath}/.git`); }
 
   rewritePackage();
 }
@@ -31,6 +25,7 @@ function rewritePackage()
   jsonData = jsonData
     .replace(/\"s.*;",[\s]*?\s*/g, '') // eslint-disable-line
     .replace(':aftercreate', '')
+    .replace('"mlnckmern"', `"${userOpts.a}"`)
     .replace('"mlnck"', `"${userOpts.a}"`);
   fs.writeFileSync(`${basePath}/package.json`, jsonData);
   handleOptional();
@@ -61,6 +56,27 @@ function handleOptional()
 
   if(userOpts.s.match(/no?/))
   { removeSample(); }
+
+  installPackages();
+}
+
+function installPackages()
+{
+  if(fs.existsSync('./package.json'))
+  {
+    console.log(chalk.magenta('installing node packages'));
+    console.log(chalk.keyword('orange').bold(' *** This may take a few minutes *** '));
+    if(sh.which('yarn'))
+    {
+      console.log(chalk.magenta('running: ') + chalk.underline('yarn'));
+      sh.exec('yarn');
+    }
+    else
+    {
+      console.log(chalk.magenta('running: ') + chalk.underline('npm install'));
+      sh.exec('npm install');
+    }
+  }
 }
 
 module.exports = installStack;

@@ -34,20 +34,8 @@ function gitPull(s)
     console.log(chalk.cyan.bold.dim('Fetching the boilerplate...'));
   }, 750);
 
-  // Pull the corresponding variant into the given folder
-  // sh.exec('git pull https://github.com/mlnck/MERNSkeleton.git master', (code) => {
-  //     clearInterval(interval);
-  //     logUpdate.clear();
-  //     if (code !== 0) {
-  //         console.log(chalk.red.bold('Error! Try again'));
-  //         exit(1);
-  //     }
-  //     console.log(chalk.green.bold('Completed.....You are good to go!'));
-  // });
-
   sh.exec('git pull https://github.com/mlnck/MERNSkeleton.git master');
   clearInterval(interval);
-  console.log(chalk.magenta('removing .git '));
 }
 
 module.exports = gitPull;
