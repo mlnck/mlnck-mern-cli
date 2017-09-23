@@ -1,7 +1,6 @@
-
-
 const chalk = require('chalk'),
   fs = require('fs'),
+  { delDir } = require('../utils'),
   basePath = process.env.PWD;
 
 let pagesWithSampleOutput = [],
@@ -24,6 +23,7 @@ function removeSample()
     ];
   rmrf =
     [
+      '/client/components/Closet/',
       '/client/containers/Skeleton/',
       '/server/controllers/__tests__/skeleton.spec.js',
       '/server/controllers/skeleton.controller.js',
@@ -61,42 +61,19 @@ function removeTextFromFiles(s)
 
 function removeSampleElements(s)
 {
-  const deleteFolderRecursive = function (path)
-  {
-    let files = [];
-    if(fs.existsSync(path))
-    {
-      files = fs.readdirSync(path);
-      files.forEach((file) =>
-      {
-        const curPath = `${path}/${file}`;
-        if(fs.statSync(curPath).isDirectory())
-        { // recurse
-          deleteFolderRecursive(curPath);
-        }
-        else
-        { // delete file
-          fs.unlinkSync(curPath);
-        }
-      });
-      fs.rmdirSync(path);
-    }
-  };
-
   console.log(chalk.magenta('removing sample file/directory: ') + chalk.underline(s));
 
   if(fs.existsSync(basePath + s) && fs.statSync(basePath + s).isFile())
   { fs.unlinkSync(basePath + s); }
 
   if(fs.existsSync(basePath + s) && fs.statSync(basePath + s).isDirectory())
-  { deleteFolderRecursive(basePath + s); }
+  { delDir(basePath + s); }
 
   if(rmrf.length)
   { removeSampleElements(rmrf.pop()); }
   else
   {
-    console.log(chalk.inverse(' removed sample elements, script complete '));
-    process.exit(0);
+    console.log(chalk.inverse(' SUCCESSFUL: removed sample elements '));
   }
 }
 

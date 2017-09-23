@@ -5,29 +5,48 @@ const chalk = require('chalk'),
   co = require('co'),
   prompt = require('co-prompt'),
   mlnckMern = require('commander'),
+
+  gitPull = require('./commands/git-pull.js'),
+  installStack = require('./commands/install-stack'),
   removeSample = require('./commands/remove-sample');
 
 mlnckMern
   .version('0.0.1');
 
-mlnckMern // fs.rename //fs.rmdir
+mlnckMern
+  .command('new')
+  .description('install new mlnck-mern project')
+  .arguments('<project-name>')
+  .action((projectName) =>
+  {
+    co(function* iproj()
+    {
+      gitPull(projectName);
+      process.exit(0);
+    });
+  });
+
+mlnckMern
   .command('create-project')
   .alias('create')
-  .description('create new mlnck-mern project')
-  .arguments('<project-name> [install-sample] [add-optional]')
+  .description('configure initial settings of currently installed mlnck-mern project')
+  .arguments('[install-sample] [add-optional]')
+  .option('-a --author <author>', 'author')
   .option('-i --install-sample <sample>', 'install sample project', /^(yes|no)$/i, 'yes')
-  .option('-a --add-optional <optional>', 'add optional components', /^(yes|no)$/i, 'no')
-  .action((projectName) =>
+  .option('-o --add-optional <optional>', 'add optional components', /^(yes|no)$/i, 'no')
+  .action(() =>
   {
     co(function* cproj()
     {
+      const author = yield prompt('author: ');
       let sample = yield prompt('install sample project (yes): '),
         optional = yield prompt('add optional components (no): ');
       sample = (sample.length) ? sample : 'yes';
       optional = (optional.length) ? optional : 'no';
-      console.log('creating/setup for project named %s', projectName);
+      // console.log('creating/setup for project named %s', projectName);
       console.log('   with sample: %s', sample);
       console.log('   add optional: %s', optional);
+      installStack(author, sample, optional);
       process.exit(0);
     });
   });
@@ -41,7 +60,6 @@ mlnckMern
     co(function* rsample()
     {
       const bool = yield prompt.confirm('remove sample files: (n)');
-      console.log('removing files:', bool);
       if(bool)
       { removeSample(); }
       else { console.log(chalk.yellow.bold('Files not removed')); }
@@ -223,74 +241,15 @@ mlnckMern
 
 mlnckMern.parse(process.argv);
 
-
 /*
-.action(function(sample) {
-  co(function *() {
-    var name = yield prompt('project name: '),
-        sample = yield prompt.password('Install Sample Files: ');
-    console.log('%s -> creating: %s: installing files?: %s', command, name, sample);
-  });
-});
-*/
+while true; do
+    read -p "Do you wish to install this program?" yn
+    case $yn in
+        [Yy]* ) make install; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
-/*
-program
-  .command('*')
-  .action(function(env){
-    console.log('deploying "%s"', env);
-  });
-*/
-
-// https://github.com/tj/commander.js#coercion
-/*
-function range(val) {
-  return val.split('..').map(Number);
-}
-
-function list(val) {
-  return val.split(',');
-}
-
-function collect(val, memo) {
-  memo.push(val);
-  return memo;
-}
-
-function increaseVerbosity(v, total) {
-  return total + 1;
-}
-
-program
-  .version('0.1.0')
-  .usage('[options] <file ...>')
-  .option('-i, --integer <n>', 'An integer argument', parseInt)
-  .option('-f, --float <n>', 'A float argument', parseFloat)
-  .option('-r, --range <a>..<b>', 'A range', range)
-  .option('-l, --list <items>', 'A list', list)
-  .option('-o, --optional [value]', 'An optional value')
-  .option('-c, --collect [value]', 'A repeatable value', collect, [])
-  .option('-v, --verbose', 'A value that can be increased', increaseVerbosity, 0)
-  .parse(process.argv);
-
-console.log(' int: %j', program.integer);
-console.log(' float: %j', program.float);
-console.log(' optional: %j', program.optional);
-program.range = program.range || [];
-console.log(' range: %j..%j', program.range[0], program.range[1]);
-console.log(' list: %j', program.list);
-console.log(' collect: %j', program.collect);
-console.log(' verbosity: %j', program.verbose);
-console.log(' args: %j', program.args);
-
----------
-
-program
-  .version('0.1.0')
-  .option('-s --size <size>', 'Pizza size', /^(large|medium|small)$/i, 'medium')
-  .option('-d --drink [drink]', 'Drink', /^(coke|pepsi|izze)$/i)
-  .parse(process.argv);
-
-console.log(' size: %j', program.size);
-console.log(' drink: %j', program.drink);
+https://stackoverflow.com/questions/226703/how-do-i-prompt-for-yes-no-cancel-input-in-a-linux-shell-script/27875395#27875395
 */
