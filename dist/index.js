@@ -8,7 +8,8 @@ const chalk = require('chalk'),
 
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
-  removeSample = require('./commands/remove-sample');
+  removeSample = require('./commands/remove-sample'),
+  createClient = require('./commands/create-client');
 
 mlnckMern
   .version('0.0.1');
@@ -82,26 +83,34 @@ mlnckMern
   });
 
 mlnckMern
-  .command('create-component')
-  .alias('component')
-  .description('create client side component and associated files')
-  .arguments('<name> [stateful] [dispatch] [saga] [styled] [tests]')
+  .command('create-client')
+  .alias('client')
+  .description('create client side container or component and associated files')
+  .arguments('<type> <name> [stateful] [dispatch] [saga] [styled] [tests]') // type is component or container
   .option('-sta --stateful <stateful>', 'will this be a stateful component', /^(yes|no)$/i, 'yes')
   .option('-r --add-route <route>', 'create route', /^(yes|no)$/i, 'yes')
   .option('-d --dispatch <dispatch>', 'will this component dispatch actions', /^(yes|no)$/i, 'no')
   .option('-sa --saga <saga>', 'will this component need have side-effects', /^(yes|no)$/i, 'no')
   .option('-sty --styled <styled>', 'will this component need javascript styling', /^(yes|no)$/i, 'no')
-  .action((name) =>
+  .action((type, name) =>
   {
-    co(function* ccomp()
+    co(function* cclient()
     {
-      let stateful = yield prompt('access state (yes): '),
-        route = yield prompt('add route (yes): '),
+      if(type !== 'component')
+      {
+        if(type !== 'container')
+        {
+          console.log(chalk.red.bold(' ** Type must be `container` or `component` ** '));
+          process.exit(0);
+        }
+      }
+      let stateful = yield prompt('access state (no): '),
+        route = yield prompt('add route (no): '),
         dispatch = yield prompt('dispatch actions (no): '),
         saga = yield prompt('create sagas (no): '),
         styled = yield prompt('include javascript styling (no): ');
-      stateful = (stateful.length) ? stateful : 'yes';
-      route = (route.length) ? route : 'yes';
+      stateful = (stateful.length) ? stateful : 'no';
+      route = (route.length) ? route : 'no';
       dispatch = (dispatch.length) ? dispatch : 'no';
       saga = (saga.length) ? saga : 'no';
       styled = (styled.length) ? styled : 'no';
@@ -111,39 +120,7 @@ mlnckMern
       console.log('   dispatch: %s', dispatch);
       console.log('   saga: %s', saga);
       console.log('   styled: %s', styled);
-      process.exit(0);
-    });
-  });
-
-mlnckMern
-  .command('create-container')
-  .alias('container')
-  .description('create client side container and associated files')
-  .arguments('<component> [stateful] [dispatch] [saga] [styled] [tests]')
-  .option('-sta --stateful <stateful>', 'will this be a stateful component', /^(yes|no)$/i, 'yes')
-  .option('-d --dispatch <dispatch>', 'will this component dispatch actions', /^(yes|no)$/i, 'no')
-  .option('-sa --saga <saga>', 'will this component need have side-effects', /^(yes|no)$/i, 'no')
-  .option('-sty --styled <styled>', 'will this component need javascript styling', /^(yes|no)$/i, 'no')
-  .action((component) =>
-  {
-    co(function* ccont()
-    {
-      let stateful = yield prompt('access state (yes): '),
-        route = yield prompt('add route (yes): '),
-        dispatch = yield prompt('dispatch actions (no): '),
-        saga = yield prompt('create sagas (no): '),
-        styled = yield prompt('include javascript styling (no): ');
-      stateful = (stateful.length) ? stateful : 'yes';
-      route = (route.length) ? route : 'yes';
-      dispatch = (dispatch.length) ? dispatch : 'no';
-      saga = (saga.length) ? saga : 'no';
-      styled = (styled.length) ? styled : 'no';
-      console.log('creating component %s', component);
-      console.log('   routing: %s', route);
-      console.log('   stateful: %s', stateful);
-      console.log('   dispatch: %s', dispatch);
-      console.log('   saga: %s', saga);
-      console.log('   styled: %s', styled);
+      createClient(type, name, stateful, route, dispatch, saga, styled);
       process.exit(0);
     });
   });

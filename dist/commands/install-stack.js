@@ -25,7 +25,7 @@ function rewritePackage()
   jsonData = jsonData
     .replace(/\"s.*;",[\s]*?\s*/g, '') // eslint-disable-line
     .replace(':aftercreate', '')
-    .replace('"mlnckmern"', `"${userOpts.a}"`)
+    .replace('"mlnckmern"', `"${userOpts.n}"`)
     .replace('"mlnck"', `"${userOpts.a}"`);
   fs.writeFileSync(`${basePath}/package.json`, jsonData);
   handleOptional();
