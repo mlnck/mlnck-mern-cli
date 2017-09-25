@@ -97,18 +97,34 @@ function handleActions()
 
 function handleJsStyled()
 {
-  // opt- js styling
+  if(compOpts.styled)
+  {
+    console.log(chalk.magenta('adding js styles: '));
+    sh.cp(`${compOpts.templatePath}StyledXxx.js`, `${compOpts.destDir}Styled${compOpts.nameCapitalized}.js`);
+    let styledData = fs.readFileSync(`${compOpts.destDir}Styled${compOpts.nameCapitalized}.js`, 'utf8');
+    styledData = styledData.replace(/StyledXxx/g, `Styled${compOpts.nameCapitalized}`);
+    fs.writeFileSync(`${compOpts.destDir}Styled${compOpts.nameCapitalized}.js`, styledData);
+  }
+  else
+  {
+    console.log(chalk.magenta('removing js styles: '));
+    let stylelessData = fs.readFileSync(`${compOpts.destDir}index.js`, 'utf8');
+    stylelessData = stylelessData.replace(/\/\/.*Vis.*[\s\S]*?Xxx';[\s\S].?/g, '');
+    fs.writeFileSync(`${compOpts.destDir}index.js`, stylelessData);
+  }
+  renameTemplates();
+}
+
+function renameTemplates()
+{
+  templateRename(compOpts.destDir, compOpts.nameCapitalized, compOpts.nameLowercase);
   handleRoute();
 }
 
 function handleRoute()
 {
-  // opt- route
-  // sh.exec('croute compOpts.nameLowercase ');
-  renameTemplates();
+  if(compOpts.route)
+  { sh.exec('croute compOpts.nameLowercase '); }
 }
-
-function renameTemplates()
-{ templateRename(compOpts.destDir, compOpts.nameCapitalized, compOpts.nameLowercase); }
 
 module.exports = createClient;
