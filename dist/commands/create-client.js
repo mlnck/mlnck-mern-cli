@@ -79,12 +79,18 @@ function handleActions()
 
   if(compOpts.saga)
   {
-    // update store to use saga
+    console.log(chalk.magenta('configuring saga: '));
+    let storeSaga = fs.readFileSync(`${basePath}/client/store.js`, 'utf8');
+    storeSaga = storeSaga.replace('// Sagas', `// Sagas\nsagaMiddleware.run(${compOpts.nameLowercase}Saga);`);
+    storeSaga = storeSaga.replace('const sagaMiddleware',
+      `import ${compOpts.nameLowercase}Saga from './${compOpts.type}s/${compOpts.nameCapitalized}/state/sagas';
+                                      \n\nconst sagaMiddleware`);
+    fs.writeFileSync(`${basePath}/client/store.js`, storeSaga);
   }
   else
   {
-    // delete saga files
-    // delete selector file
+    console.log(chalk.magenta('removing saga: '));
+    fs.unlinkSync(`${compOpts.destDir}/state/sagas.js`);
   }
   handleJsStyled();
 }
