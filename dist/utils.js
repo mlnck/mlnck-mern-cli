@@ -1,6 +1,20 @@
 const fs = require('fs'),
   chalk = require('chalk');
 
+const dirExists = function (path)
+{
+  if(
+    !fs.existsSync(`${process.env.PWD}/client/components/${path.split('/').pop()}`)
+      &&
+    !fs.existsSync(`${process.env.PWD}/client/containers/${path.split('/').pop()}`)
+  )
+  {
+    console.log(chalk.red.bold(' ** Container or Component does not exist. Please add it before the route. ** '));
+    console.log(chalk.red(' ** Also, make sure you are at the root of your project. ** '));
+    process.exit(1);
+  }
+};
+
 const delDir = function (path)
 {
   let files = [];
@@ -48,4 +62,4 @@ const templateRename = function (path, uc, lc)
   }
 };
 
-module.exports = { delDir, templateRename };
+module.exports = { dirExists, delDir, templateRename };

@@ -2,9 +2,10 @@
 
 
 const chalk = require('chalk'),
-  fs = require('fs'),
   inquirer = require('inquirer'),
   mlnckMern = require('commander'),
+
+  { dirExists } = require('./utils'),
 
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
@@ -138,16 +139,7 @@ mlnckMern
   .option('-lf --loadfnc [loadkfnc]', 'function for pre-processed db query', '', '')
   .action((path) =>
   {
-    if(
-      !fs.existsSync(`${process.env.PWD}/client/components/${path.split('/').pop()}`)
-        &&
-      !fs.existsSync(`${process.env.PWD}/client/containers/${path.split('/').pop()}`)
-    )
-    {
-      console.log(chalk.red.bold(' ** Container or Component does not exist. Please add it before the route. ** '));
-      console.log(chalk.red(' ** Also, make sure you are at the root of your project. ** '));
-      process.exit(1);
-    }
+    dirExists(path);
 
     const compName = path.split('/').pop(),
       crouteQuestions = [
@@ -163,16 +155,7 @@ mlnckMern
           },
           validate(value)
           {
-            if(
-              !fs.existsSync(`${process.env.PWD}/client/components/${value.split('/').pop()}`)
-                    &&
-                  !fs.existsSync(`${process.env.PWD}/client/containers/${value.split('/').pop()}`)
-            )
-            {
-              console.log(chalk.red.bold(' ** Container or Component does not exist. Please add it before the route. ** '));
-              console.log(chalk.red(' ** Also, make sure you are at the root of your project. ** '));
-              process.exit(1);
-            }
+            dirExists(value);
 
             const valid = !!(value.length);
             return (valid) ? true : 'Please enter a component/container name';
