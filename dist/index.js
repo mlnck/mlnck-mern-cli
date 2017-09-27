@@ -139,11 +139,23 @@ mlnckMern
   .option('-lf --loadfnc [loadkfnc]', 'function for pre-processed db query', '', '')
   .action((path) =>
   {
-    dirExists(path);
-
+    // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
     const compName = path.split('/').pop(),
       crouteQuestions = [
         { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
+        {
+          type: 'input',
+          name: 'pathOverride',
+          message: 'What is the component/container path',
+          when(answers)
+          { return !answers.verifyPath; },
+          validate(value)
+          {
+            const valid = !!(value.length);
+            return (valid) ? true : 'Please enter the component/container path';
+          },
+          filter: String
+        },
         { type: 'confirm', name: 'containerName', message: `component/container name is: ${compName}?` },
         {
           type: 'input',
@@ -151,11 +163,12 @@ mlnckMern
           message: 'What is the component/container name',
           when(answers)
           {
+            if(answers.containerName){ dirExists(compName); }// check file exists if user agreed with default above
             return !answers.containerName;
           },
           validate(value)
           {
-            dirExists(value);
+            dirExists(value);// check file exists if user agreed entered custom information
 
             const valid = !!(value.length);
             return (valid) ? true : 'Please enter a component/container name';
@@ -173,6 +186,7 @@ mlnckMern
       ];
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
+      answers.path = path; // eslint-disable-line
       console.log('\nclient-route:');
       console.log(JSON.stringify(answers, null, '  '));
       createClientRoute(answers);

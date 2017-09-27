@@ -11,12 +11,6 @@ function createClient(obj)
   const tmpNameFirst = obj.name.charAt(0).toUpperCase();
 
   compOpts = { ...obj };
-  // compOpts.type = t;
-  // compOpts.stateful = (~s.indexOf('n') > -1);
-  // compOpts.route = (~r.indexOf('n') > -1);
-  // compOpts.dispatch = (~d.indexOf('n') > -1);
-  // compOpts.saga = (~sa.indexOf('n') > -1);
-  // compOpts.styled = (~st.indexOf('n') > -1);
   compOpts.nameCapitalized = tmpNameFirst + obj.name.substr(1);
   compOpts.nameLowercase = tmpNameFirst.toLowerCase() + obj.name.substr(1);
   compOpts.destDir = `${basePath}/client/${compOpts.type}s/${compOpts.nameCapitalized}/`;
@@ -126,7 +120,7 @@ function renameTemplates()
 function handleRoute()
 {
   if(compOpts.route)
-  { sh.exec(`mlnck-mern croute /${compOpts.nameLowercase}/ ${compOpts.nameCapitalized}`); }
+  { sh.exec(`mlnck-mern croute /${compOpts.nameCapitalized}`); }
 }
 
 module.exports = createClient;
