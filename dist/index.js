@@ -2,6 +2,7 @@
 
 
 const chalk = require('chalk'),
+  fs = require('fs'),
   inquirer = require('inquirer'),
   mlnckMern = require('commander'),
 
@@ -128,26 +129,65 @@ mlnckMern
   .command('create-client-route')
   .alias('croute')
   .description('create client side route')
-  .arguments('<path> <container>')
+  .arguments('<path>')
   .option('-vp --verify-path <verifypath>', 'verify path', '', '')
+  .option('-c --container-name <containername>', 'container name (if different from end of path)', '', '')
   .option('-e --exact <exact>', 'exact path', /^(yes|no)$/i, 'yes')
   .option('-pc --parent-container [parentcontainer]', 'parent container path', '', '')
   .option('-lk --loadkey [loadkey]', 'key for pre-processed db query', '', '')
   .option('-lf --loadfnc [loadkfnc]', 'function for pre-processed db query', '', '')
   .action((path) =>
   {
-    const crouteQuestions = [
-      { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
-      { type: 'confirm',
-        name: 'exactPath',
-        message: 'Path is exact?',
-        choices: ['yes', 'no'],
-        filter(val){ return (val === 'yes'); }
-      },
-      { type: 'input', name: 'parentContainer', message: 'Parent container path (null):' },
-      { type: 'input', name: 'loadkey', message: 'pre-processed db query key (null):' },
-      { type: 'input', name: 'loadfnc', message: 'pre-processed db query function (null):' }
-    ];
+    if(
+      !fs.existsSync(`${process.env.PWD}/client/components/${path.split('/').pop()}`)
+        &&
+      !fs.existsSync(`${process.env.PWD}/client/containers/${path.split('/').pop()}`)
+    )
+    {
+      console.log(chalk.red.bold(' ** Container or Component does not exist. Please add it before the route. ** '));
+      console.log(chalk.red(' ** Also, make sure you are at the root of your project. ** '));
+      process.exit(1);
+    }
+
+    const compName = path.split('/').pop(),
+      crouteQuestions = [
+        { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
+        { type: 'confirm', name: 'containerName', message: `component/container name is: ${compName}?` },
+        {
+          type: 'input',
+          name: 'continerNameOverride',
+          message: 'What is the component/container name',
+          when(answers)
+          {
+            return !answers.containerName;
+          },
+          validate(value)
+          {
+            if(
+              !fs.existsSync(`${process.env.PWD}/client/components/${value.split('/').pop()}`)
+                    &&
+                  !fs.existsSync(`${process.env.PWD}/client/containers/${value.split('/').pop()}`)
+            )
+            {
+              console.log(chalk.red.bold(' ** Container or Component does not exist. Please add it before the route. ** '));
+              console.log(chalk.red(' ** Also, make sure you are at the root of your project. ** '));
+              process.exit(1);
+            }
+
+            const valid = !!(value.length);
+            return (valid) ? true : 'Please enter a component/container name';
+          },
+          filter: String
+        },
+        { type: 'confirm',
+          name: 'exactPath',
+          message: 'Path is exact?',
+          filter(val){ return (val === 'yes'); }
+        },
+        { type: 'input', name: 'parentContainer', message: 'Parent container path (null):' },
+        { type: 'input', name: 'loadkey', message: 'pre-processed db query key (null):' },
+        { type: 'input', name: 'loadfnc', message: 'pre-processed db query function (null):' }
+      ];
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
       console.log('\nclient-route:');
