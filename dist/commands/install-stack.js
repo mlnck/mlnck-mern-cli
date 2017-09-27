@@ -9,9 +9,9 @@ const chalk = require('chalk'),
 
 let userOpts = {};
 
-function installStack(a, s, o)
+function installStack(answers)
 {
-  userOpts = { a, s, o, n: projName };
+  userOpts = { ...answers, n: projName };
   console.log(chalk.green.bgBlackBright.bold(' creating project %s'), userOpts.n);
 
 
@@ -26,18 +26,18 @@ function rewritePackage()
     .replace(/\"s.*;",[\s]*?\s*/g, '') // eslint-disable-line
     .replace(':aftercreate', '')
     .replace('"mlnckmern"', `"${userOpts.n}"`)
-    .replace('"mlnck"', `"${userOpts.a}"`);
+    .replace('"mlnck"', `"${userOpts.author}"`);
   fs.writeFileSync(`${basePath}/package.json`, jsonData);
   handleOptional();
 }
 
 function handleOptional()
 {
-  console.log(chalk.underline((!userOpts.o.match(/no?/)) ? 'adding ' : 'removing ') +
+  console.log(chalk.underline((userOpts.optional) ? 'adding ' : 'removing ') +
                 chalk.magenta(' optional components'));
 
   const optPath = `${basePath}/client/components/optionalelements`;
-  if(!userOpts.o.match(/no?/))
+  if(userOpts.optional)
   {
     // move components from inside folder to outside
     let files = [];
@@ -54,7 +54,7 @@ function handleOptional()
   }
   delDir(optPath);
 
-  if(userOpts.s.match(/no?/))
+  if(!userOpts.sample)
   { removeSample(); }
 
   installPackages();

@@ -2,14 +2,14 @@
 
 
 const chalk = require('chalk'),
-  co = require('co'),
-  prompt = require('co-prompt'),
+  inquirer = require('inquirer'),
   mlnckMern = require('commander'),
 
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
   removeSample = require('./commands/remove-sample'),
-  createClient = require('./commands/create-client');
+  createClient = require('./commands/create-client'),
+  createClientRoute = require('./commands/create-client-route');
 
 mlnckMern
   .version('0.0.1');
@@ -20,9 +20,13 @@ mlnckMern
   .arguments('<project-name>')
   .action((projectName) =>
   {
-    co(function* iproj()
+    const newQuestions = [
+      { type: 'confirm', name: 'createNew', message: `Create new project ${projectName}?`, default: true }
+    ];
+    inquirer.prompt(newQuestions).then((answers) =>
     {
-      gitPull(projectName);
+      if(answers.createNew)
+      { gitPull(projectName); }
       process.exit(0);
     });
   });
@@ -31,23 +35,39 @@ mlnckMern
   .command('create-project')
   .alias('create')
   .description('configure initial settings of currently installed mlnck-mern project')
-  .arguments('[install-sample] [add-optional]')
   .option('-a --author <author>', 'author')
   .option('-i --install-sample <sample>', 'install sample project', /^(yes|no)$/i, 'yes')
   .option('-o --add-optional <optional>', 'add optional components', /^(yes|no)$/i, 'no')
   .action(() =>
   {
-    co(function* cproj()
+    const createProjectQuestions = [
+      { type: 'input',
+        name: 'author',
+        message: 'author:',
+        validate(value)
+        {
+          const valid = !!(value.length);
+          return valid || 'Please enter an author';
+        },
+        filter: String
+      },
+      { type: 'list',
+        name: 'sample',
+        message: 'Install sample project?',
+        choices: ['yes', 'no'],
+        filter(val){ return (val === 'yes'); }
+      },
+      { type: 'list',
+        name: 'optional',
+        message: 'Install optional components?',
+        choices: ['yes', 'no'],
+        default: 'no',
+        filter(val){ return (val === 'yes'); }
+      }
+    ];
+    inquirer.prompt(createProjectQuestions).then((answers) =>
     {
-      const author = yield prompt('author: ');
-      let sample = yield prompt('install sample project (yes): '),
-        optional = yield prompt('add optional components (no): ');
-      sample = (sample.length) ? sample : 'yes';
-      optional = (optional.length) ? optional : 'no';
-      // console.log('creating/setup for project named %s', projectName);
-      console.log('   with sample: %s', sample);
-      console.log('   add optional: %s', optional);
-      installStack(author, sample, optional);
+      installStack(answers);
       process.exit(0);
     });
   });
@@ -58,26 +78,16 @@ mlnckMern
   .description('remove smaple files and logs which may have been initially installed')
   .action(() =>
   {
-    co(function* rsample()
+    const removeQuestions = [
+      { type: 'confirm', name: 'removeSample', message: 'Remove sample files?', default: true }
+    ];
+    inquirer.prompt(removeQuestions).then((answers) =>
     {
-      const bool = yield prompt.confirm('remove sample files: (n)');
-      if(bool)
+      if(answers.removeSample)
       { removeSample(); }
-      else { console.log(chalk.yellow.bold('Files not removed')); }
-      process.exit(0);
-    });
-  });
+      else
+      { console.log(chalk.yellow.bold('Files not removed')); }
 
-mlnckMern
-  .command('include-optional')
-  .alias('optional')
-  .description('include optional components')
-  .action(() =>
-  {
-    co(function* incopt()
-    {
-      const bool = yield prompt.confirm('include optional files: ');
-      console.log('including files:', bool);
       process.exit(0);
     });
   });
@@ -86,75 +96,63 @@ mlnckMern
   .command('create-client')
   .alias('client')
   .description('create client side container or component and associated files')
-  .arguments('<type> <name> [stateful] [dispatch] [saga] [styled] [tests]') // type is component or container
+  .arguments('<name> [type] [stateful] [dispatch] [saga] [styled] [tests]')
+  .option('-t --type <type>', 'type of component', /^(component|container)$/i, 'container')
   .option('-sta --stateful <stateful>', 'will this be a stateful component', /^(yes|no)$/i, 'yes')
   .option('-r --add-route <route>', 'create route', /^(yes|no)$/i, 'yes')
   .option('-d --dispatch <dispatch>', 'will this component dispatch actions', /^(yes|no)$/i, 'no')
-  .option('-sa --saga <saga>', 'will this component need have side-effects', /^(yes|no)$/i, 'no')
+  .option('-sa --saga <saga>', 'will this component have side-effects', /^(yes|no)$/i, 'no')
   .option('-sty --styled <styled>', 'will this component need javascript styling', /^(yes|no)$/i, 'no')
-  .action((type, name) =>
+  .action((name) =>
   {
-    co(function* cclient()
+    const createClientQuestions = [
+      { type: 'list', name: 'type', message: 'Type?', choices: ['container', 'component'] },
+      { type: 'list', name: 'stateful', message: 'will this be a stateful component?', choices: ['yes', 'no'] },
+      { type: 'list', name: 'route', message: 'create route?', choices: ['yes', 'no'] },
+      { type: 'list', name: 'dispatch', message: 'will this component dispatch actions?', choices: ['yes', 'no'] },
+      { type: 'list', name: 'saga', message: 'will this component have side-effects?', choices: ['yes', 'no'] },
+      { type: 'list', name: 'styled', message: 'will this component need javascript styling?', choices: ['yes', 'no'], default: 'no' }
+    ];
+
+    inquirer.prompt(createClientQuestions).then((answers) =>
     {
-      if(type !== 'component')
-      {
-        if(type !== 'container')
-        {
-          console.log(chalk.red.bold(' ** Type must be `container` or `component` ** '));
-          process.exit(0);
-        }
-      }
-      let stateful = yield prompt('access state (no): '),
-        route = yield prompt('add route (no): '),
-        dispatch = yield prompt('dispatch actions (no): '),
-        saga = yield prompt('create sagas (no): '),
-        styled = yield prompt('include javascript styling (no): ');
-      stateful = (stateful.length) ? stateful : 'no';
-      route = (route.length) ? route : 'no';
-      dispatch = (dispatch.length) ? dispatch : 'no';
-      saga = (saga.length) ? saga : 'no';
-      styled = (styled.length) ? styled : 'no';
-      console.log('creating component %s', name);
-      console.log('   routing: %s', route);
-      console.log('   stateful: %s', stateful);
-      console.log('   dispatch: %s', dispatch);
-      console.log('   saga: %s', saga);
-      console.log('   styled: %s', styled);
-      createClient(type, name, stateful, route, dispatch, saga, styled);
+      answers.name = name; // eslint-disable-line
+      console.log('answers:', answers);
+      createClient(answers);
       process.exit(0);
     });
   });
+
 
 mlnckMern
   .command('create-client-route')
   .alias('croute')
   .description('create client side route')
-  .arguments('<component> [path] [exact] [nested] [loadkey] [loadfnc]')
-  .option('-p --path <path>', 'path to display component')
+  .arguments('<path> <container>')
+  .option('-vp --verify-path <verifypath>', 'verify path', '', '')
   .option('-e --exact <exact>', 'exact path', /^(yes|no)$/i, 'yes')
-  .option('-n --nested <nested>', 'component this is nested within', '', '')
-  .option('-lk --loadkey <loadkey>', 'key for pre-processed db query', '', '')
-  .option('-lf --loadfnc <loadkfnc>', 'function for pre-processed db query', '', '')
-  .action((name) =>
+  .option('-pc --parent-container [parentcontainer]', 'parent container path', '', '')
+  .option('-lk --loadkey [loadkey]', 'key for pre-processed db query', '', '')
+  .option('-lf --loadfnc [loadkfnc]', 'function for pre-processed db query', '', '')
+  .action((path) =>
   {
-    co(function* ccrte()
+    const crouteQuestions = [
+      { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
+      { type: 'confirm',
+        name: 'exactPath',
+        message: 'Path is exact?',
+        choices: ['yes', 'no'],
+        filter(val){ return (val === 'yes'); }
+      },
+      { type: 'input', name: 'parentContainer', message: 'Parent container path (null):' },
+      { type: 'input', name: 'loadkey', message: 'pre-processed db query key (null):' },
+      { type: 'input', name: 'loadfnc', message: 'pre-processed db query function (null):' }
+    ];
+    inquirer.prompt(crouteQuestions).then((answers) =>
     {
-      let path = yield prompt('route path (/): '),
-        exact = yield prompt('path is exact (yes): '),
-        nested = yield prompt('component is nested within (null): '),
-        loadkey = yield prompt('pre-processed db query key (null): '),
-        loadfnc = yield prompt('pre-processed db query function (null): ');
-      path = (path.length) ? path : '/';
-      exact = (exact.length) ? exact : 'yes';
-      nested = (nested.length) ? nested : 'null';
-      loadkey = (loadkey.length) ? loadkey : 'null';
-      loadfnc = (loadfnc.length) ? loadfnc : 'null';
-      console.log('routing to component %s', name);
-      console.log('   path: %s', path);
-      console.log('   exact: %s', exact);
-      console.log('   nested: %s', nested);
-      console.log('   loadkey: %s', loadkey);
-      console.log('   loadfnc: %s', loadfnc);
+      console.log('\nclient-route:');
+      console.log(JSON.stringify(answers, null, '  '));
+      createClientRoute(answers);
       process.exit(0);
     });
   });
@@ -168,43 +166,25 @@ mlnckMern
   .option('-s --schema <schema>', 'create route schema', /^(yes|no)$/i, 'yes')
   .action((name) =>
   {
-    co(function* csrte()
+    const srouteQuestions = [
+      {
+        type: 'list',
+        name: 'createController',
+        message: 'Create controller?',
+        choices: ['yes', 'no'],
+        filter(val){ return (val === 'yes'); }
+      },
+      { type: 'list',
+        name: 'schema',
+        message: 'Create schema?',
+        choices: ['yes', 'no'],
+        filter(val){ return (val === 'yes'); }
+      }
+    ];
+    inquirer.prompt(srouteQuestions).then((answers) =>
     {
-      let controller = yield prompt('create controller (yes): '),
-        schema = yield prompt('create schema (yes): ');
-      controller = (controller.length) ? controller : 'yes';
-      schema = (schema.length) ? schema : 'yes';
-      console.log('creating server route: %s', name);
-      console.log('   controller: %s', controller);
-      console.log('   schema: %s', schema);
-      process.exit(0);
-    });
-  });
-
-mlnckMern
-  .command('create-server-controller')
-  .alias('controller')
-  .arguments('<name>')
-  .description('create server side controller')
-  .action((name) =>
-  {
-    co(function* cscont()
-    {
-      console.log('creating server:', name);
-      process.exit(0);
-    });
-  });
-
-mlnckMern
-  .command('create-server-schema')
-  .alias('schema')
-  .arguments('<name>')
-  .description('create server side schema')
-  .action((name) =>
-  {
-    co(function* cschema()
-    {
-      console.log('creating schema:', name);
+      answers.name = name; // eslint-disable-line
+      console.log('answers:', answers);
       process.exit(0);
     });
   });
@@ -217,16 +197,3 @@ mlnckMern
   });
 
 mlnckMern.parse(process.argv);
-
-/*
-while true; do
-    read -p "Do you wish to install this program?" yn
-    case $yn in
-        [Yy]* ) make install; break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
-
-https://stackoverflow.com/questions/226703/how-do-i-prompt-for-yes-no-cancel-input-in-a-linux-shell-script/27875395#27875395
-*/

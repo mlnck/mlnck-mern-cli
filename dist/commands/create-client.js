@@ -2,24 +2,26 @@ const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
   { templateRename } = require('../utils'),
-  basePath = process.env.PWD,
-  compOpts = {};
+  basePath = process.env.PWD;
 
-function createClient(t, n, s, r, d, sa, st)
+let compOpts = {};
+
+function createClient(obj)
 {
-  const tmpNameFirst = n.charAt(0).toUpperCase();
+  const tmpNameFirst = obj.name.charAt(0).toUpperCase();
 
-  compOpts.type = t;
-  compOpts.stateful = (~s.indexOf('n') > -1);
-  compOpts.route = (~r.indexOf('n') > -1);
-  compOpts.dispatch = (~d.indexOf('n') > -1);
-  compOpts.saga = (~sa.indexOf('n') > -1);
-  compOpts.styled = (~st.indexOf('n') > -1);
-  compOpts.nameCapitalized = tmpNameFirst + n.substr(1);
-  compOpts.nameLowercase = tmpNameFirst.toLowerCase() + n.substr(1);
-  compOpts.destDir = `${basePath}/client/${t}s/${compOpts.nameCapitalized}/`;
-  compOpts.templatePath = `${basePath}/config/templates/client/${t}s/_Structure/`;
-  console.log(chalk.green.bgBlackBright.bold(' creating new %s: %s '), t, compOpts.nameCapitalized);
+  compOpts = { ...obj };
+  // compOpts.type = t;
+  // compOpts.stateful = (~s.indexOf('n') > -1);
+  // compOpts.route = (~r.indexOf('n') > -1);
+  // compOpts.dispatch = (~d.indexOf('n') > -1);
+  // compOpts.saga = (~sa.indexOf('n') > -1);
+  // compOpts.styled = (~st.indexOf('n') > -1);
+  compOpts.nameCapitalized = tmpNameFirst + obj.name.substr(1);
+  compOpts.nameLowercase = tmpNameFirst.toLowerCase() + obj.name.substr(1);
+  compOpts.destDir = `${basePath}/client/${compOpts.type}s/${compOpts.nameCapitalized}/`;
+  compOpts.templatePath = `${basePath}/config/templates/client/${compOpts.type}s/_Structure/`;
+  console.log(chalk.green.bgBlackBright.bold(' creating new %s: %s '), compOpts.type, compOpts.nameCapitalized);
   createFile();
 }
 
@@ -124,7 +126,7 @@ function renameTemplates()
 function handleRoute()
 {
   if(compOpts.route)
-  { sh.exec('croute compOpts.nameLowercase '); }
+  { sh.exec(`mlnck-mern croute /${compOpts.nameLowercase}/ ${compOpts.nameCapitalized}`); }
 }
 
 module.exports = createClient;
