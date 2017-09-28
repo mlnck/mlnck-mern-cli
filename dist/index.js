@@ -182,7 +182,12 @@ mlnckMern
         },
         { type: 'input', name: 'parentContainer', message: 'Parent container path (null):' },
         { type: 'input', name: 'loadkey', message: 'pre-processed db query key (null):' },
-        { type: 'input', name: 'loadfnc', message: 'pre-processed db query function (null):' }
+        { type: 'input',
+          name: 'loadfnc',
+          message: 'pre-processed db query function (null):',
+          when(answers)
+          { return answers.loadkey; }
+        }
       ];
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
