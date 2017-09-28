@@ -159,7 +159,7 @@ mlnckMern
         { type: 'confirm', name: 'containerName', message: `component/container name is: ${compName}?` },
         {
           type: 'input',
-          name: 'continerNameOverride',
+          name: 'containerNameOverride',
           message: 'What is the component/container name',
           when(answers)
           {
@@ -169,7 +169,7 @@ mlnckMern
           validate(value)
           {
             dirExists(value);// check file exists if user agreed entered custom information
-
+            // xx
             const valid = !!(value.length);
             return (valid) ? true : 'Please enter a component/container name';
           },
@@ -191,9 +191,8 @@ mlnckMern
       ];
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
+      console.log('answers:', answers);
       answers.path = path; // eslint-disable-line
-      console.log('\nclient-route:');
-      console.log(JSON.stringify(answers, null, '  '));
       createClientRoute(answers);
       process.exit(0);
     });
