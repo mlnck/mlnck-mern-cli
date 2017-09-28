@@ -59,10 +59,7 @@ function addRootRoute()
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
   newRoute += '}\n';
 
-  const newRouteObj = insertIntoRoutes(routes.lastIndexOf('];'), newRoute);
-  // routes.substring(0, routes.lastIndexOf('];')) +
-  // newRoute +
-  // routes.substr(routes.lastIndexOf('];') - routes.length);
+  const newRouteObj = insertIntoRoutes(routes.lastIndexOf(']// root routes'), newRoute);
 
   console.log(chalk.magenta('-- route configured'));
   console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
