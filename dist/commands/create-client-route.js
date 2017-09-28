@@ -18,7 +18,7 @@ function createClientRoute(obj)
 
   routes = addRouteImport();
 
-  const fullRoutes = (!obj.parentContainer.length)
+  const fullRoutes = (!obj.hasParent)
     ? addRootRoute()
     : addNestedRoute();
 
@@ -41,9 +41,8 @@ function addRouteImport()
 
   if(~routes.indexOf(importStr))
   {
-    console.log(chalk.red.bold(' ** Container or Component is already being imported. ** '));
-    console.log(chalk.red(' ** Please resolve this issue before proceeding. ** '));
-    process.exit(1);
+    // component is already imported, no need to re-add
+    return routes;
   }
 
   return insertIntoRoutes(importAt, `${importStr}\n\n`);

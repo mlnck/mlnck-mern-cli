@@ -62,4 +62,22 @@ const templateRename = function (path, uc, lc)
   }
 };
 
-module.exports = { dirExists, delDir, templateRename };
+const nestedPaths = function ()
+{
+  const pathObj = strToArr(fs.readFileSync(`${process.env.PWD}/client/routes.js`, 'utf8'));
+  console.log('objStr:', pathObj, typeof (pathObj), pathObj.routes.length);
+};
+const strToArr = function (s)
+{
+  // remove skeleton path comments
+  s = s.replace(/\/\/.*/g, ''); //eslint-disable-line
+
+  let objStr = s.match(/{[\s\S].?.*:\sRoot.*[\s\S]*(?=];)/g);
+  objStr = objStr[0].trim();
+  objStr = objStr.replace(/(\w.*)(?=:\s)/g, '"$1"')// left hand side for JSON.parse
+    .replace(/(:\s)('?\/?[\w./:-]*)/g, '$1"$2"')// right hand side for JSON.parse
+    .replace(/'/g, '').replace(/""\[/g, '[');// no more single quotes, dangling array brackets
+  return JSON.parse(objStr);
+};
+
+module.exports = { delDir, dirExists, nestedPaths, templateRename };

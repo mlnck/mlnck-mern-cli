@@ -5,7 +5,7 @@ const chalk = require('chalk'),
   inquirer = require('inquirer'),
   mlnckMern = require('commander'),
 
-  { dirExists } = require('./utils'),
+  { dirExists, nestedPaths } = require('./utils'),
 
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
@@ -139,7 +139,10 @@ mlnckMern
   .option('-lf --loadfnc [loadkfnc]', 'function for pre-processed db query', '', '')
   .action((path) =>
   {
+    if(path.charAt(0) !== '/'){ path = `/${path}`; } //eslint-disable-line
     // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
+    const nestedPathArr = nestedPaths();
+    console.log('nestedPathArr:', nestedPathArr);
     const compName = path.split('/').pop(),
       crouteQuestions = [
         { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
@@ -147,6 +150,7 @@ mlnckMern
           type: 'input',
           name: 'pathOverride',
           message: 'What is the component/container path',
+          default: '/',
           when(answers)
           { return !answers.verifyPath; },
           validate(value)
@@ -169,18 +173,32 @@ mlnckMern
           validate(value)
           {
             dirExists(value);// check file exists if user agreed entered custom information
-            // xx
             const valid = !!(value.length);
             return (valid) ? true : 'Please enter a component/container name';
           },
           filter: String
+        },
+        {
+          type: 'list',
+          name: 'hasParent',
+          message: 'Is this a nested component/container?',
+          choices: ['Yes', 'No'],
+          default: 'No',
+          filter(val){ return (val === 'yes'); }
+        },
+        {
+          type: 'list',
+          name: 'parentContainer',
+          message: 'Select the parent route',
+          choices: ['Yes', 'No'],
+          when(answers)
+          { return answers.hasParent; }
         },
         { type: 'confirm',
           name: 'exactPath',
           message: 'Path is exact?',
           filter(val){ return (val === 'yes'); }
         },
-        { type: 'input', name: 'parentContainer', message: 'Parent container path (null):' },
         { type: 'input', name: 'loadkey', message: 'pre-processed db query key (null):' },
         { type: 'input',
           name: 'loadfnc',
