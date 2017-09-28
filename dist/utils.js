@@ -64,8 +64,8 @@ const templateRename = function (path, uc, lc)
 
 const nestedPaths = function ()
 {
-  const pathObj = strToArr(fs.readFileSync(`${process.env.PWD}/client/routes.js`, 'utf8'));
-  console.log('objStr:', pathObj, typeof (pathObj), pathObj.routes.length);
+  //this function is here to allow customized finessing for each obj if  we end up reusing strToArr
+  return strToArr(fs.readFileSync(`${process.env.PWD}/client/routes.js`, 'utf8'));
 };
 const strToArr = function (s)
 {
@@ -79,5 +79,21 @@ const strToArr = function (s)
     .replace(/'/g, '').replace(/""\[/g, '[');// no more single quotes, dangling array brackets
   return JSON.parse(objStr);
 };
+const recursiveWalk(a,k,v,s)
+{
+  //loops through (a)rray, everytime (k)ey is hit, (v)alue is pushed to a new array.
+    //if v is nested, then it is appended to all prev v before it, with a (s)eperator string:
+      /*
+        [
+          {key : 1},
+          {key : 2},
+          {
+            key : 3,
+            arr : [{ key: 3a}]
+          }
+        ]
+        //OUTPUT: [1,2,3,33a]
+      */
+}
 
 module.exports = { delDir, dirExists, nestedPaths, templateRename };
