@@ -64,14 +64,42 @@ const templateRename = function (path, uc, lc)
 
 const nestedPaths = function ()
 {
-  //this function is here to allow customized finessing for each obj if  we end up reusing strToArr
-  return strToArr(fs.readFileSync(`${process.env.PWD}/client/routes.js`, 'utf8'));
+  const pathsObj = strToObj(fs.readFileSync(`${process.env.PWD}/client/routes.js`, 'utf8'));
+  let pathsArr = recursiveWalk(pathsObj.routes, 'path', 'routes', '');
+  pathsArr = pathsArr.sort();
+  console.log(chalk.keyword('coral')('current sitemap:\n\b', (`${pathsArr}`).replace(/,/g, '\n')));
+  return pathsArr;
 };
-const strToArr = function (s)
+const recursiveWalk = function (a, k, r)
+{
+  const finalArr = [],
+    nestedArrays = [];
+  let parentRoute = '';
+
+  function arrRecurse(arr)
+  {
+    if(typeof (arr[0]) === 'string')
+    {
+      parentRoute = arr.shift();
+    }
+    arr.map((itm) =>
+    {
+      const curScope = itm;
+      if(curScope[k])
+      { finalArr.push(parentRoute + curScope[k]); }
+      if(curScope[r]){ curScope[r].unshift(parentRoute + curScope[k]); nestedArrays.push(curScope[r]); }
+      return true;
+    });
+    if(nestedArrays.length){ arrRecurse(nestedArrays.pop()); }
+  }
+  arrRecurse(a);
+
+  return finalArr;
+};
+const strToObj = function (s)
 {
   // remove skeleton path comments
   s = s.replace(/\/\/.*/g, ''); //eslint-disable-line
-
   let objStr = s.match(/{[\s\S].?.*:\sRoot.*[\s\S]*(?=];)/g);
   objStr = objStr[0].trim();
   objStr = objStr.replace(/(\w.*)(?=:\s)/g, '"$1"')// left hand side for JSON.parse
@@ -79,21 +107,5 @@ const strToArr = function (s)
     .replace(/'/g, '').replace(/""\[/g, '[');// no more single quotes, dangling array brackets
   return JSON.parse(objStr);
 };
-const recursiveWalk(a,k,v,s)
-{
-  //loops through (a)rray, everytime (k)ey is hit, (v)alue is pushed to a new array.
-    //if v is nested, then it is appended to all prev v before it, with a (s)eperator string:
-      /*
-        [
-          {key : 1},
-          {key : 2},
-          {
-            key : 3,
-            arr : [{ key: 3a}]
-          }
-        ]
-        //OUTPUT: [1,2,3,33a]
-      */
-}
 
 module.exports = { delDir, dirExists, nestedPaths, templateRename };

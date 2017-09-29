@@ -141,9 +141,10 @@ mlnckMern
   {
     if(path.charAt(0) !== '/'){ path = `/${path}`; } //eslint-disable-line
     // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
-    const nestedPathObj = nestedPaths();
-    console.log('nestedPathObj:', nestedPathObj);
-    
+    // TODO: Check to make sure no trailing slash....no double routes
+    const nestedPathArr = nestedPaths();
+    // console.log('nestedPathArray:', nestedPathArr);
+
     const compName = path.split('/').pop(),
       crouteQuestions = [
         { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
@@ -191,9 +192,9 @@ mlnckMern
           type: 'list',
           name: 'parentContainer',
           message: 'Select the parent route',
-          choices: ['Yes', 'No'],
+          choices: nestedPathArr,
           when(answers)
-          { return answers.hasParent; }
+          { return !answers.hasParent; }
         },
         { type: 'confirm',
           name: 'exactPath',
