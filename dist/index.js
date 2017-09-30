@@ -186,7 +186,7 @@ mlnckMern
           message: 'Is this a nested component/container?',
           choices: ['Yes', 'No'],
           default: 'No',
-          filter(val){ return (val === 'yes'); }
+          filter(val){ return (val === 'Yes'); }
         },
         {
           type: 'list',
@@ -194,7 +194,7 @@ mlnckMern
           message: 'Select the parent route',
           choices: nestedPathArr,
           when(answers)
-          { return !answers.hasParent; }
+          { return answers.hasParent; }
         },
         { type: 'confirm',
           name: 'exactPath',

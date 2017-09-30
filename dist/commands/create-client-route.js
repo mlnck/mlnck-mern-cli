@@ -22,9 +22,12 @@ function createClientRoute(obj)
     ? addRootRoute()
     : addNestedRoute();
 
-  fs.writeFileSync(`${basePath}/client/routes.js`, fullRoutes);
+console.log('RE-ENABLE THE BELOW LINE TO WRITE TO FILE!!!!!');
+console.log('RE-ENABLE THE BELOW LINE TO WRITE TO FILE!!!!!');
+console.log('RE-ENABLE THE BELOW LINE TO WRITE TO FILE!!!!!');
+/*  fs.writeFileSync(`${basePath}/client/routes.js`, fullRoutes);
   console.log(chalk.magenta('-- added to pre-existing routes '));
-  tidyRoutes();
+  tidyRoutes(); */
 }
 
 function addRouteImport()
@@ -67,7 +70,41 @@ function addRootRoute()
 
 function addNestedRoute()
 {
+  console.log('ADDING NESTED');
+  let newRoute = `,{
+      path: '${(compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path}',
+      exact: ${compOpts.exactPath},
+      component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
+  if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
+  if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
+  newRoute += '}\n';
 
+  //match on nested route, and regex the end point for use with lastIndexOf
+  console.log('compOpts.parentContainer:',compOpts.parentContainer);
+  let regexPath = new RegExp( compOpts.parentContainer
+                                .split('/')
+                                .join('.*[\\s\\S]*?\\/')
+                                .replace('.*[\s\S]*?','')
+                                .concat('.*[\\s\\S]*?(?=})'), 'g' );
+  console.log('regexPath:',regexPath);
+
+///\/skeleton2.*[\s\S]*?\/xxx2.*[\s\S]*?\/:xyz.*[\s\S]*?\/zzz1.*[\s\S]*?\/:cidx.*[\s\S]*?(?=})
+let nestedPathMatch = routes.match(regexPath);
+console.log('nestedPathMatch:',nestedPathMatch);
+console.log('lastIndexOf(regexPath:', routes.lastIndexOf(nestedPathMatch[0]), nestedPathMatch[0].length);
+// ---      .*[\s\S]*?\/
+////    ---   \/skeleton2.*[\s\S]*?\/xxx2.*[\s\S]*?\/:xyz.*[\s\S]*?\/zzz1.*[\s\S]*?\/:cidx
+
+//Need to check to see if routes:[] key already exists on this object(already has nested routes)
+  //and add to it
+/* OR */
+//Need to add routes:[] key to the object (first nested route)
+  const newRouteObj = insertIntoRoutes(nestedPathMatch[0].length, newRoute);
+
+  // console.log(chalk.magenta('-- route configured'));
+  console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
+  console.log(newRouteObj);
+  return newRouteObj;
 }
 
 function insertIntoRoutes(i, s)
