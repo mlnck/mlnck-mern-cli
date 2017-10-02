@@ -71,8 +71,10 @@ function addRootRoute()
 function addNestedRoute()
 {
   console.log('ADDING NESTED');
-  let newRoute = `,{
-      path: '${(compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path}',
+
+  let newPath = (compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path,
+    newRoute = `,{
+      path: '${newPath}',
       exact: ${compOpts.exactPath},
       component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
   if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
@@ -90,20 +92,41 @@ function addNestedRoute()
 
   /// \/skeleton2.*[\s\S]*?\/xxx2.*[\s\S]*?\/:xyz.*[\s\S]*?\/zzz1.*[\s\S]*?\/:cidx.*[\s\S]*?(?=})
   const nestedPathMatch = routes.match(regexPath);
-  console.log('nestedPathMatch:', nestedPathMatch);
-  console.log('lastIndexOf(regexPath:', routes.lastIndexOf(nestedPathMatch[0]), nestedPathMatch[0].length);
+  // console.log('nestedPathMatch:', nestedPathMatch[0]);
   // ---      .*[\s\S]*?\/
   /// /    ---   \/skeleton2.*[\s\S]*?\/xxx2.*[\s\S]*?\/:xyz.*[\s\S]*?\/zzz1.*[\s\S]*?\/:cidx
 
   // Need to check to see if routes:[] key already exists on this object(already has nested routes)
+  // console.log('nestedIndexs',nestedIndexs,nestedIndexs.length);
   // and add to it
   /* OR */
   // Need to add routes:[] key to the object (first nested route)
+  // if lastIndexOf'path' DOES NOT contain the key that was matched from the terminal
+  // then no need to add a new "routes" array.
+  // ::path a > b > c already exists.
+  // want to add "d" onto path "b"
+  // if lastIndexOf path is "c" then "b" is already being used as a parentRoute
+  // NO //routes.*path.*\'\/(\w.*?)(?=\\)
+  // routes.*[\s\S].*path.*\'\/(\w.*?)(?=\')
+
+  const allNestedPaths = nestedPathMatch[0].match(/routes.*[\s\S].*path.*\'\/(\w.*?)(?=\')/g);
+  lastNestedPath = allNestedPaths[allNestedPaths.length - 1].replace(/routes.*[\s\S].*?.*\'/g, '').split('/'),
+  parentContainerPathUri = compOpts.parentContainer.split('/'),
+  currentlyNested = false;
+  lastNestedPath.shift();
+  parentContainerPathUri.shift();
+  console.log('alreadyNested[0]:', compOpts.parentContainer, allNestedPaths, '\n:', lastNestedPath, '\n::', parentContainerPathUri);
+  for(let i = 0; i < lastNestedPath.length; i++)
+  {
+    if(parentContainerPathUri[parentContainerPathUri.length - i] !== lastNestedPath[lastNestedPath.length - i])
+    { currentlyNested = true; }
+  }
+  (currentlyNested) ? console.log('route is already being nested') : console.log('route is NOT being nested');
   const newRouteObj = insertIntoRoutes(nestedPathMatch[0].length, newRoute);
 
   // console.log(chalk.magenta('-- route configured'));
   console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
-  console.log(newRouteObj);
+  /// /////console.log(newRouteObj);
   return newRouteObj;
 }
 
