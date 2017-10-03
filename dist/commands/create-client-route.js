@@ -81,25 +81,13 @@ function addNestedRoute()
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
   newRoute += '}\n';
 
-  // match on nested route, and regex the end point for use with lastIndexOf
-  //console.log('compOpts.parentContainer:', compOpts.parentContainer);
   const parentContainerArray = compOpts.parentContainer.split('/'),
         closingRegex = (parentContainerArray.length > 2) ? ')?' : '',
         regexPath = new RegExp(parentContainerArray
-          // .join('.*[\\s\\S]*?\\/')
-          .join('){1}(\\/)?.*[\\s\\S]*?(')//tmp
-          //.replace('.*[\\s\\S]*?', '') //eslint-disable-line
-          .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line //tmp
-          // .concat('.*[\\s\\S]*?(?=})'), 'g'); //tmp
-          .concat(closingRegex), 'g');//tmp
-  console.log('regexPath:', regexPath);
-
-/* skeleton2.*[\s\S]*?\/(xxx2){1}(\/)?.*[\s\S]*?(:xyz){1}(\/)?.*[\s\S]*?(zzz1){1}(\/)?.*[\s\S]*?(:cidx)? */
-/* skeleton2.*[\s\S]*?\/(xxx2){1}.*[\s\S]*?\/(:xyz){1}.*[\s\S]*?\/(zzz1){1}\/.*[\s\S]*?(:cidx)? */
-/* skeleton2.*[\s\S]*?\/(xxx2){1}.*[\s\S]*?\/(:xyz){1}.*[\s\S]*?\/(zzz1){1}.*[\s\S]*?(:cidx)? */
-/*skeleton2.*[\s\S]*?\/(xxx2)?.*[\s\S]*?\/(:xyz)?.*[\s\S]*?\/(zzz1)?.*[\s\S]*?\/(:cidx)?*/
-  ///Take off - get us to the obj itself
-    //.*[\s\S]*?\/.*[\s\S]*?(?=})
+          .join('){1}(\\/)?.*[\\s\\S]*?(')
+          .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
+          .concat(closingRegex), 'g');
+  // console.log('regexPath:', regexPath);
 
   const nestedPathMatch = routes.match(regexPath);
   console.log('nestedPathMatch:', nestedPathMatch[0],'--->',nestedPathMatch[0].length,'<---');
@@ -113,49 +101,17 @@ function addNestedRoute()
       hash = new Date().getTime(),
       rteWithHash = insertIntoRoutes(matchedLen,hash),
       pathObjStr = rteWithHash.match(new RegExp(`{.*${hash}.*[\\s\\S]*?}`,'g')),
-      hasRoutes = (~pathObjStr[0].indexOf('routes: [') ? true : false);
+      hasChildRoutes = (~pathObjStr[0].indexOf('routes: [') ? true : false);
 
-  console.log('rteWithHash:',matchedLen,'|',hash,rteWithHash);
-  console.log('pathObjStr:',pathObjStr,new RegExp(`{.*${hash}.*[\\s\\S]*?}`,'g'));
-  console.log('hasRoutes:',hasRoutes);
+  if(!hasChildRoutes)
+  { newRoute = 'routes: [' + newRoute.substr(1) + ']'; }
+  console.log('newRoute:',newRoute);
+process.exit(1);//breaking on last instances (WayneManor)
+  const newRouteObj = insertIntoRoutes(nestedPathMatch[0].length, newRoute);
 
-  // Need to check to see if routes:[] key already exists on this object(already has nested routes)
-  // console.log('nestedIndexs',nestedIndexs,nestedIndexs.length);
-  // and add to it
-  /* OR */
-  // Need to add routes:[] key to the object (first nested route)
-  // if lastIndexOf'path' DOES NOT contain the key that was matched from the terminal
-  // then no need to add a new "routes" array.
-  // ::path a > b > c already exists.
-  // want to add "d" onto path "b"
-  // if lastIndexOf path is "c" then "b" is already being used as a parentRoute
-/*
-  const allNestedPaths = nestedPathMatch[0].match(/routes.*[\s\S].*path.*\'\/(\w.*?)(?=\')/g);
-  lastNestedPath = allNestedPaths[allNestedPaths.length - 1].replace(/routes.*[\s\S].*?.*\'/g, '').split('/'),
-  parentContainerPathUri = compOpts.parentContainer.split('/'),
-  currentlyNested = false;
-  lastNestedPath.shift();
-  parentContainerPathUri.shift();
-  console.log('alreadyNested[0]:', compOpts.parentContainer, allNestedPaths, '\n:', lastNestedPath, '\n::', parentContainerPathUri);
-  for(let i = 0; i < lastNestedPath.length; i++)
-  {
-    if(parentContainerPathUri[parentContainerPathUri.length - i] !== lastNestedPath[lastNestedPath.length - i])
-    { currentlyNested = true; }
-  }
-  (currentlyNested) ? console.log('route is already being nested') : console.log('route is NOT being nested');
-  if(!currentlyNested)
-  {
-    // newRoute = newRoute.substr(1);
-    newRoute = 'routes: [' + newRoute.substr(1) + ']';
-    // console.log('newRoute:',newRoute);
-  }
-*/
-  // const newRouteObj = insertIntoRoutes(nestedPathMatch[0].length, newRoute);
-  const newRouteObj = 'hi mom';
-
-  // console.log(chalk.magenta('-- route configured'));
+  console.log(chalk.magenta('-- route configured'));
   console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
-  /// /////console.log(newRouteObj);
+  console.log(newRouteObj);
   return newRouteObj;
 }
 
