@@ -10,7 +10,7 @@ let compOpts = {},
 function createClientRoute(obj)
 {
   compOpts = { ...obj };
-  console.log('compOpts:', compOpts);
+  // console.log('compOpts:', compOpts);
 
   routes = fs.readFileSync(`${basePath}/client/routes.js`, 'utf8');
 
@@ -77,7 +77,7 @@ function addNestedRoute()
       component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
   if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
-  newRoute += '},\n';
+  newRoute += '}\n';
 
   const parentContainerArray = compOpts.parentContainer.replace(/\/:/g,'~!~').split('/'),
         closingRegex = (parentContainerArray.length > 2) ? ')' : '',
@@ -104,11 +104,14 @@ function addNestedRoute()
       hasChildRoutes = (~pathObjStr[0].indexOf('routes: [') ? true : false);
       console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
 
-  let insertAt = nestedPathMatch[0].length;
+  let insertAt = nestedPathMatch[0].length+1;
   if(!hasChildRoutes)
-  { newRoute = ',routes: [' + newRoute.substr(1) + ']'; }
+  { newRoute = ',routes: [{' + newRoute.substr(1) + ']'; }
   else
-  { insertAt += (pathObjStr[0].indexOf('routes: [')); }
+  {
+    insertAt += (pathObjStr[0].indexOf('routes: [')-1);
+    newRoute += ',';
+  }
 
   const newRouteObj = insertIntoRoutes(insertAt, newRoute);
 

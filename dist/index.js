@@ -212,7 +212,7 @@ mlnckMern
       ];
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
-      console.log('answers:', answers);
+      // console.log('answers:', answers);
       answers.path = path; // eslint-disable-line
       createClientRoute(answers);
       process.exit(0);
