@@ -143,6 +143,7 @@ mlnckMern
     // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
     // TODO: Check to make sure no trailing slash....no double routes
     const nestedPathArr = nestedPaths();
+          nestedPathArr.shift();
     // console.log('nestedPathArray:', nestedPathArr);
 
     const compName = path.split('/').pop(),

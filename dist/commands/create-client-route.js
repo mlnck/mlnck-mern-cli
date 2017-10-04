@@ -1,6 +1,7 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
+  { nestedPaths } = require('../utils'),
   basePath = process.env.PWD;
 
 let compOpts = {},
@@ -70,44 +71,52 @@ function addRootRoute()
 
 function addNestedRoute()
 {
-  console.log('ADDING NESTED');
+  // console.log('ADDING NESTED');
 
   let newPath = (compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path,
-    newRoute = `,{
+    newRoute = `{
       path: '${newPath}',
       exact: ${compOpts.exactPath},
       component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
   if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
-  newRoute += '}\n';
+  newRoute += '},\n';
 
-  const parentContainerArray = compOpts.parentContainer.split('/'),
-        closingRegex = (parentContainerArray.length > 2) ? ')?' : '',
+  const parentContainerArray = compOpts.parentContainer.replace(/\/:/g,'~!~').split('/'),
+        closingRegex = (parentContainerArray.length > 2) ? ')' : '',
         regexPath = new RegExp(parentContainerArray
           .join('){1}(\\/)?.*[\\s\\S]*?(')
+          .replace(/~!~/g,'/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
           .concat(closingRegex), 'g');
   // console.log('regexPath:', regexPath);
 
   const nestedPathMatch = routes.match(regexPath);
-  console.log('nestedPathMatch:', nestedPathMatch[0],'--->',nestedPathMatch[0].length,'<---');
+  // console.log('nestedPathMatch:', nestedPathMatch[0],'--->',nestedPathMatch[0].length,'<---');
 
 //Because node does not support .test() with regex we have to use a bit of a workaround
   //step1 - find path in routes
   //step2 - add unique way to find location
   //step3 - get full containing "object"
   //step4 - check for indexof routes
+
   let matchedLen = nestedPathMatch[0].length,
       hash = new Date().getTime(),
       rteWithHash = insertIntoRoutes(matchedLen,hash),
-      pathObjStr = rteWithHash.match(new RegExp(`{.*${hash}.*[\\s\\S]*?}`,'g')),
+      pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`,'g')),
       hasChildRoutes = (~pathObjStr[0].indexOf('routes: [') ? true : false);
+// console.log('HASCHILDROUTES:',hasChildRoutes);
 
+  let insertAt = nestedPathMatch[0].length;
   if(!hasChildRoutes)
-  { newRoute = 'routes: [' + newRoute.substr(1) + ']'; }
-  console.log('newRoute:',newRoute);
-process.exit(1);//breaking on last instances (WayneManor)
-  const newRouteObj = insertIntoRoutes(nestedPathMatch[0].length, newRoute);
+  { newRoute = ',routes: [' + newRoute.substr(1) + ']'; }
+  else
+  {
+    insertAt += (pathObjStr[0].indexOf('routes: ['));
+    // console.log('???', pathObjStr[0], pathObjStr[0].indexOf('routes: [') );
+  }
+
+  const newRouteObj = insertIntoRoutes(insertAt, newRoute);
 
   console.log(chalk.magenta('-- route configured'));
   console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
