@@ -7,11 +7,12 @@ const chalk = require('chalk'),
 
   { dirExists, nestedPaths } = require('./utils'),
 
+  createClient = require('./commands/create-client'),
+  createClientRoute = require('./commands/create-client-route'),
+  createSchema = require('./commands/create-schema'),
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
-  removeSample = require('./commands/remove-sample'),
-  createClient = require('./commands/create-client'),
-  createClientRoute = require('./commands/create-client-route');
+  removeSample = require('./commands/remove-sample');
 
 mlnckMern
   .version('0.0.1');
@@ -19,8 +20,8 @@ mlnckMern
 mlnckMern
   .command('new')
   .description('install new mlnck-mern project')
-  .arguments('<project-name>')
-  .action((projectName) =>
+  .arguments('<project-name> [prev-version]')
+  .action((projectName, prevVersion) =>
   {
     const newQuestions = [
       { type: 'confirm', name: 'createNew', message: `Create new project ${projectName}?`, default: true }
@@ -28,7 +29,27 @@ mlnckMern
     inquirer.prompt(newQuestions).then((answers) =>
     {
       if(answers.createNew)
-      { gitPull(projectName); }
+      {
+        if(typeof (prevVersion) !== 'undefined')
+        {
+          console.log(chalk.magenta.bold.bgBlack.underline(`
+                                                                                    TODO:\r`) +
+          chalk.bgBlack.white(`
+                        • I will update master as new versions of react/node/mongo/etc   \r
+                          come out. Will make branches for previous versions, and this   \r
+                          will allow you to specify which version to download.           \r
+                                                                                         \r
+                        • Also stub place where if version is defined it looks to a      \r
+                          specific folder to grab the internal "commands" scripts.       \r
+                          (e.g. commands/v16/create-client-route.js)                     \r
+                                                                                         \r
+                        •  Also add in help command that will list all available versions
+                                                                                         \r`));
+          process.exit(0);
+        }
+
+        gitPull(projectName);
+      }
       process.exit(0);
     });
   });
@@ -247,6 +268,27 @@ mlnckMern
     {
       answers.name = name; // eslint-disable-line
       console.log('answers:', answers);
+      process.exit(0);
+    });
+  });
+
+mlnckMern
+  .command('create-schema')
+  .alias('schema')
+  .description('create schema file for mongoose integration')
+  .arguments('<name>')
+  .action((name) =>
+  {
+    const createSchemaQuestions = [
+      { type: 'confirm', name: 'createSchema', message: `Create schema ${name}?`, default: true }
+    ];
+    inquirer.prompt(createSchemaQuestions).then((answers) =>
+    {
+      if(answers.createSchema)
+      { createSchema(name); }
+      else
+      { console.log(chalk.yellow.bold('No schema created')); }
+
       process.exit(0);
     });
   });

@@ -1,17 +1,12 @@
 const chalk = require('chalk'),
-  fs = require('fs'),
   sh = require('shelljs'),
+  { verifyUniqueFile } = require('../utils'),
   basePath = process.env.PWD;
 
 function gitPull(s)
 {
-  if(fs.existsSync(`${basePath}/${s}`))
-  {
-    console.log(' ');
-    console.log(chalk.red.bold.underline(`** ${s} directory already exits! Please give the project a unique name **`));
-    console.log(' ');
-    process.exit(1);
-  }
+  verifyUniqueFile(`${basePath}/${s}`);
+
   if(!sh.which('git'))
   {
     console.log(' ');
