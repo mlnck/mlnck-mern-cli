@@ -10,7 +10,6 @@ let compOpts = {},
 function createClientRoute(obj)
 {
   compOpts = { ...obj };
-  // console.log('compOpts:', compOpts);
 
   routes = fs.readFileSync(`${basePath}/client/routes.js`, 'utf8');
 
@@ -79,37 +78,37 @@ function addNestedRoute()
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
   newRoute += '}\n';
 
-  const parentContainerArray = compOpts.parentContainer.replace(/\/:/g,'~!~').split('/'),
-        closingRegex = (parentContainerArray.length > 2) ? ')' : '',
-        regexPath = new RegExp(parentContainerArray
-          .join('){1}(\\/)?.*[\\s\\S]*?(')
-          .replace(/~!~/g,'/:')
+  const parentContainerArray = compOpts.parentContainer.replace(/\/:/g, '~!~').split('/'),
+    closingRegex = (parentContainerArray.length > 2) ? ')' : '',
+    regexPath = new RegExp(parentContainerArray
+      .join('){1}(\\/)?.*[\\s\\S]*?(')
+      .replace(/~!~/g, '/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
-          .concat(closingRegex), 'g');
+      .concat(closingRegex), 'g');
   // console.log('regexPath:', regexPath);
 
   const nestedPathMatch = routes.match(regexPath);
   // console.log('nestedPathMatch:', nestedPathMatch[0],'--->',nestedPathMatch[0].length,'<---');
 
-//Because node does not support .test() with regex we have to use a bit of a workaround
-  //step1 - find path in routes
-  //step2 - add unique way to find location
-  //step3 - get full containing "object"
-  //step4 - check for indexof routes
+  // Because node does not support .test() with regex we have to use a bit of a workaround
+  // step1 - find path in routes
+  // step2 - add unique way to find location
+  // step3 - get full containing "object"
+  // step4 - check for indexof routes
 
   let matchedLen = nestedPathMatch[0].length,
-      hash = new Date().getTime(),
-      rteWithHash = insertIntoRoutes(matchedLen,hash),
-      pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`,'g')),
-      hasChildRoutes = (~pathObjStr[0].indexOf('routes: [') ? true : false);
-      console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
+    hash = new Date().getTime(),
+    rteWithHash = insertIntoRoutes(matchedLen, hash),
+    pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
+    hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
+  console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
 
-  let insertAt = nestedPathMatch[0].length+1;
+  let insertAt = nestedPathMatch[0].length + 1;
   if(!hasChildRoutes)
-  { newRoute = ',routes: [{' + newRoute.substr(1) + ']'; }
+  { newRoute = `,routes: [{${newRoute.substr(1)}]`; }
   else
   {
-    insertAt += (pathObjStr[0].indexOf('routes: [')-1);
+    insertAt += (pathObjStr[0].indexOf('routes: [') - 1);
     newRoute += ',';
   }
 
