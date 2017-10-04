@@ -23,12 +23,9 @@ function createClientRoute(obj)
     ? addRootRoute()
     : addNestedRoute();
 
-  console.log('RE-ENABLE THE BELOW LINE TO WRITE TO FILE!!!!!');
-  console.log('RE-ENABLE THE BELOW LINE TO WRITE TO FILE!!!!!');
-  console.log('RE-ENABLE THE BELOW LINE TO WRITE TO FILE!!!!!');
-/*  fs.writeFileSync(`${basePath}/client/routes.js`, fullRoutes);
+  fs.writeFileSync(`${basePath}/client/routes.js`, fullRoutes);
   console.log(chalk.magenta('-- added to pre-existing routes '));
-  tidyRoutes(); */
+  tidyRoutes();
 }
 
 function addRouteImport()
@@ -71,7 +68,7 @@ function addRootRoute()
 
 function addNestedRoute()
 {
-  // console.log('ADDING NESTED');
+  console.log(chalk.magenta('-- locating parent route '));
 
   let newPath = (compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path,
     newRoute = `{
@@ -105,22 +102,19 @@ function addNestedRoute()
       rteWithHash = insertIntoRoutes(matchedLen,hash),
       pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`,'g')),
       hasChildRoutes = (~pathObjStr[0].indexOf('routes: [') ? true : false);
-// console.log('HASCHILDROUTES:',hasChildRoutes);
+      console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
 
   let insertAt = nestedPathMatch[0].length;
   if(!hasChildRoutes)
   { newRoute = ',routes: [' + newRoute.substr(1) + ']'; }
   else
-  {
-    insertAt += (pathObjStr[0].indexOf('routes: ['));
-    // console.log('???', pathObjStr[0], pathObjStr[0].indexOf('routes: [') );
-  }
+  { insertAt += (pathObjStr[0].indexOf('routes: [')); }
 
   const newRouteObj = insertIntoRoutes(insertAt, newRoute);
 
   console.log(chalk.magenta('-- route configured'));
   console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
-  console.log(newRouteObj);
+  // console.log(newRouteObj);
   return newRouteObj;
 }
 
