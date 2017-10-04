@@ -108,4 +108,15 @@ const strToObj = function (s)
   return JSON.parse(objStr);
 };
 
-module.exports = { delDir, dirExists, nestedPaths, templateRename };
+const verifyUniqueFile = function(s)
+{
+  if(fs.existsSync(s))
+    {
+      console.log(' ');
+      console.log(chalk.red.bold.underline(`** ${s} already exits! Please give the element a unique name **`));
+      console.log(' ');
+      process.exit(1);
+    }
+}
+
+module.exports = { delDir, dirExists, nestedPaths, templateRename, verifyUniqueFile };

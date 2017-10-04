@@ -1,7 +1,7 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
-  { templateRename } = require('../utils'),
+  { templateRename,verifyUniqueFile } = require('../utils'),
   basePath = process.env.PWD;
 
 let compOpts = {};
@@ -21,13 +21,8 @@ function createClient(obj)
 
 function createFile()
 {
-  if(fs.existsSync(compOpts.destDir))
-  {
-    console.log(' ');
-    console.log(chalk.red.bold.underline(`** ${compOpts.nameCapitalized} ${compOpts.type} already exits! Please give the ${compOpts.type} a unique name **`));
-    console.log(' ');
-    process.exit(1);
-  }
+  verifyUniqueFile(compOpts.destDir)
+
   console.log(chalk.magenta(`-- creating ${compOpts.type} folder`));
   sh.mkdir('-p', compOpts.destDir);
 
