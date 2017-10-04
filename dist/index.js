@@ -58,9 +58,6 @@ mlnckMern
   .command('create-project')
   .alias('create')
   .description('configure initial settings of currently installed mlnck-mern project')
-  .option('-a --author <author>', 'author')
-  .option('-i --install-sample <sample>', 'install sample project', /^(yes|no)$/i, 'yes')
-  .option('-o --add-optional <optional>', 'add optional components', /^(yes|no)$/i, 'no')
   .action(() =>
   {
     const createProjectQuestions = [
@@ -119,13 +116,7 @@ mlnckMern
   .command('create-client')
   .alias('client')
   .description('create client side container or component and associated files')
-  .arguments('<name> [type] [stateful] [dispatch] [saga] [styled] [tests]')
-  .option('-t --type <type>', 'type of component', /^(component|container)$/i, 'container')
-  .option('-sta --stateful <stateful>', 'will this be a stateful component', /^(yes|no)$/i, 'yes')
-  .option('-r --add-route <route>', 'create route', /^(yes|no)$/i, 'yes')
-  .option('-d --dispatch <dispatch>', 'will this component dispatch actions', /^(yes|no)$/i, 'no')
-  .option('-sa --saga <saga>', 'will this component have side-effects', /^(yes|no)$/i, 'no')
-  .option('-sty --styled <styled>', 'will this component need javascript styling', /^(yes|no)$/i, 'no')
+  .arguments('<name>')
   .action((name) =>
   {
     const createClientQuestions = [
@@ -152,17 +143,10 @@ mlnckMern
   .alias('croute')
   .description('create client side route')
   .arguments('<path>')
-  .option('-vp --verify-path <verifypath>', 'verify path', '', '')
-  .option('-c --container-name <containername>', 'container name (if different from end of path)', '', '')
-  .option('-e --exact <exact>', 'exact path', /^(yes|no)$/i, 'yes')
-  .option('-pc --parent-container [parentcontainer]', 'parent container path', '', '')
-  .option('-lk --loadkey [loadkey]', 'key for pre-processed db query', '', '')
-  .option('-lf --loadfnc [loadkfnc]', 'function for pre-processed db query', '', '')
   .action((path) =>
   {
     if(path.charAt(0) !== '/'){ path = `/${path}`; } //eslint-disable-line
     // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
-    // TODO: Check to make sure no trailing slash....no double routes
     const nestedPathArr = nestedPaths();
     nestedPathArr.shift();
     // console.log('nestedPathArray:', nestedPathArr);
@@ -244,10 +228,8 @@ mlnckMern
   .command('create-server-route')
   .alias('sroute')
   .description('create server side route')
-  .arguments('<name> [controller] [schema]')
-  .option('-c --controller <controller>', 'create route controller', /^(yes|no)$/i, 'yes')
-  .option('-s --schema <schema>', 'create route schema', /^(yes|no)$/i, 'yes')
-  .action((name) =>
+  .arguments('<path>')
+  .action((path) =>
   {
     const srouteQuestions = [
       {
@@ -266,7 +248,7 @@ mlnckMern
     ];
     inquirer.prompt(srouteQuestions).then((answers) =>
     {
-      answers.name = name; // eslint-disable-line
+      answers.path = path; // eslint-disable-line
       console.log('answers:', answers);
       process.exit(0);
     });
