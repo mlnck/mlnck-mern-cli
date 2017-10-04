@@ -1,7 +1,7 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
-  { templateRename,verifyUniqueFile } = require('../utils'),
+  { templateRename, verifyUniqueFile } = require('../utils'),
   basePath = process.env.PWD;
 
 let compOpts = {};
@@ -21,7 +21,7 @@ function createClient(obj)
 
 function createFile()
 {
-  verifyUniqueFile(compOpts.destDir)
+  verifyUniqueFile(compOpts.destDir);
 
   console.log(chalk.magenta(`-- creating ${compOpts.type} folder`));
   sh.mkdir('-p', compOpts.destDir);

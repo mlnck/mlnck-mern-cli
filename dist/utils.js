@@ -39,6 +39,13 @@ const delDir = function (path)
 
 const templateRename = function (path, uc, lc)
 {
+  if(typeof (lc) === 'undefined')
+  {
+    const tmpNameFirst = uc.charAt(0).toUpperCase();
+    uc = tmpNameFirst + uc.substr(1); //eslint-disable-line
+    lc = uc.toLowerCase(); //eslint-disable-line
+  }
+
   let files = [];
   if(fs.existsSync(path))
   {
@@ -108,15 +115,15 @@ const strToObj = function (s)
   return JSON.parse(objStr);
 };
 
-const verifyUniqueFile = function(s)
+const verifyUniqueFile = function (s)
 {
   if(fs.existsSync(s))
-    {
-      console.log(' ');
-      console.log(chalk.red.bold.underline(`** ${s} already exits! Please give the element a unique name **`));
-      console.log(' ');
-      process.exit(1);
-    }
-}
+  {
+    console.log(' ');
+    console.log(chalk.red.bold.underline(`** ${s} already exists! Please give the element a unique name **`));
+    console.log(' ');
+    process.exit(1);
+  }
+};
 
 module.exports = { delDir, dirExists, nestedPaths, templateRename, verifyUniqueFile };

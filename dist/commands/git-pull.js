@@ -1,5 +1,4 @@
 const chalk = require('chalk'),
-  fs = require('fs'),
   sh = require('shelljs'),
   { verifyUniqueFile } = require('../utils'),
   basePath = process.env.PWD;
