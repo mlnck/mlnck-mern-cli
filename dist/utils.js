@@ -67,7 +67,7 @@ const nestedPaths = function ()
   const pathsObj = strToObj(fs.readFileSync(`${process.env.PWD}/client/routes.js`, 'utf8'));
   let pathsArr = recursiveWalk(pathsObj.routes, 'path', 'routes', '');
   pathsArr = pathsArr.sort();
-  console.log(chalk.keyword('coral')('current sitemap:\n\b', (`${pathsArr}`).replace(/,/g, '\n')));
+  // console.log(chalk.keyword('coral')('current sitemap:\n\b', (`${pathsArr}`).replace(/,/g, '\n')));
   return pathsArr;
 };
 const recursiveWalk = function (a, k, r)

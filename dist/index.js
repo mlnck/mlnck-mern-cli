@@ -143,6 +143,7 @@ mlnckMern
     // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
     // TODO: Check to make sure no trailing slash....no double routes
     const nestedPathArr = nestedPaths();
+    nestedPathArr.shift();
     // console.log('nestedPathArray:', nestedPathArr);
 
     const compName = path.split('/').pop(),
@@ -186,7 +187,7 @@ mlnckMern
           message: 'Is this a nested component/container?',
           choices: ['Yes', 'No'],
           default: 'No',
-          filter(val){ return (val === 'yes'); }
+          filter(val){ return (val === 'Yes'); }
         },
         {
           type: 'list',
@@ -194,7 +195,7 @@ mlnckMern
           message: 'Select the parent route',
           choices: nestedPathArr,
           when(answers)
-          { return !answers.hasParent; }
+          { return answers.hasParent; }
         },
         { type: 'confirm',
           name: 'exactPath',
@@ -211,7 +212,7 @@ mlnckMern
       ];
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
-      console.log('answers:', answers);
+      // console.log('answers:', answers);
       answers.path = path; // eslint-disable-line
       createClientRoute(answers);
       process.exit(0);

@@ -9,7 +9,6 @@ let compOpts = {},
 function createClientRoute(obj)
 {
   compOpts = { ...obj };
-  console.log('compOpts:', compOpts);
 
   routes = fs.readFileSync(`${basePath}/client/routes.js`, 'utf8');
 
@@ -67,7 +66,56 @@ function addRootRoute()
 
 function addNestedRoute()
 {
+  console.log(chalk.magenta('-- locating parent route '));
 
+  const newPath = (compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path;
+  let newRoute = `{
+          path: '${newPath}',
+          exact: ${compOpts.exactPath},
+          component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
+  if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
+  if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
+  newRoute += '}\n';
+
+  const parentContainerArray = compOpts.parentContainer.replace(/\/:/g, '~!~').split('/'),
+    closingRegex = (parentContainerArray.length > 2) ? ')' : '',
+    regexPath = new RegExp(parentContainerArray
+      .join('){1}(\\/)?.*[\\s\\S]*?(')
+      .replace(/~!~/g, '/:')
+          .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
+      .concat(closingRegex), 'g');
+  // console.log('regexPath:', regexPath);
+
+  const nestedPathMatch = routes.match(regexPath);
+
+  // Because node does not support .test() with regex we have to use a bit of a workaround
+  // step1 - find path in routes
+  // step2 - add unique way to find location
+  // step3 - get full containing "object"
+  // step4 - check for indexof routes
+
+  const matchedLen = nestedPathMatch[0].length,
+    hash = new Date().getTime(),
+    rteWithHash = insertIntoRoutes(matchedLen, hash),
+    pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
+    hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
+  console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
+
+  let insertAt = nestedPathMatch[0].length + 1;
+  if(!hasChildRoutes)
+  { newRoute = `,routes: [{${newRoute.substr(1)}]`; }
+  else
+  {
+    insertAt += (pathObjStr[0].indexOf('routes: [') - 1);
+    newRoute += ',';
+  }
+
+  const newRouteObj = insertIntoRoutes(insertAt, newRoute);
+
+  console.log(chalk.magenta('-- route configured'));
+  console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
+  // console.log(newRouteObj);
+  return newRouteObj;
 }
 
 function insertIntoRoutes(i, s)
