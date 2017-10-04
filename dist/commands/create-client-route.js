@@ -1,7 +1,6 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
-  { nestedPaths } = require('../utils'),
   basePath = process.env.PWD;
 
 let compOpts = {},
@@ -69,11 +68,11 @@ function addNestedRoute()
 {
   console.log(chalk.magenta('-- locating parent route '));
 
-  let newPath = (compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path,
-    newRoute = `{
-      path: '${newPath}',
-      exact: ${compOpts.exactPath},
-      component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
+  const newPath = (compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path;
+  let newRoute = `{
+          path: '${newPath}',
+          exact: ${compOpts.exactPath},
+          component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
   if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
   newRoute += '}\n';
@@ -88,7 +87,6 @@ function addNestedRoute()
   // console.log('regexPath:', regexPath);
 
   const nestedPathMatch = routes.match(regexPath);
-  // console.log('nestedPathMatch:', nestedPathMatch[0],'--->',nestedPathMatch[0].length,'<---');
 
   // Because node does not support .test() with regex we have to use a bit of a workaround
   // step1 - find path in routes
@@ -96,7 +94,7 @@ function addNestedRoute()
   // step3 - get full containing "object"
   // step4 - check for indexof routes
 
-  let matchedLen = nestedPathMatch[0].length,
+  const matchedLen = nestedPathMatch[0].length,
     hash = new Date().getTime(),
     rteWithHash = insertIntoRoutes(matchedLen, hash),
     pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
