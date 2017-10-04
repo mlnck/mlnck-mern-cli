@@ -7,11 +7,12 @@ const chalk = require('chalk'),
 
   { dirExists, nestedPaths } = require('./utils'),
 
+  createClient = require('./commands/create-client'),
+  createClientRoute = require('./commands/create-client-route'),
+  createSchema = require('./commands/create-schema'),
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
-  removeSample = require('./commands/remove-sample'),
-  createClient = require('./commands/create-client'),
-  createClientRoute = require('./commands/create-client-route');
+  removeSample = require('./commands/remove-sample');
 
 mlnckMern
   .version('0.0.1');
@@ -247,6 +248,27 @@ mlnckMern
     {
       answers.name = name; // eslint-disable-line
       console.log('answers:', answers);
+      process.exit(0);
+    });
+  });
+
+mlnckMern
+  .command('create-schema')
+  .alias('schema')
+  .description('create schema file for mongoose integration')
+  .arguments('<name>')
+  .action((name) =>
+  {
+    const createSchemaQuestions = [
+      { type: 'confirm', name: 'createSchema', message: `Create schema ${name}?`, default: true }
+    ];
+    inquirer.prompt(createSchemaQuestions).then((answers) =>
+    {
+      if(answers.createSchema)
+      { createSchema(name); }
+      else
+      { console.log(chalk.yellow.bold('No schema created')); }
+
       process.exit(0);
     });
   });
