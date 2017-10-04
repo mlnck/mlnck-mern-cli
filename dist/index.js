@@ -9,6 +9,7 @@ const chalk = require('chalk'),
 
   createClient = require('./commands/create-client'),
   createClientRoute = require('./commands/create-client-route'),
+  createServerRoute = require('./commands/create-server-route'),
   createSchema = require('./commands/create-schema'),
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
@@ -217,7 +218,6 @@ mlnckMern
       ];
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
-      // console.log('answers:', answers);
       answers.path = path; // eslint-disable-line
       createClientRoute(answers);
       process.exit(0);
@@ -249,7 +249,7 @@ mlnckMern
     inquirer.prompt(srouteQuestions).then((answers) =>
     {
       answers.path = path; // eslint-disable-line
-      console.log('answers:', answers);
+      createServerRoute(answers);
       process.exit(0);
     });
   });
