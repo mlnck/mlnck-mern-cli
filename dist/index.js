@@ -126,19 +126,9 @@ mlnckMern
   });
 
 mlnckMern
-  .command('create-full-stack-element')
+  .command('create-element')
   .alias('create')
   .description('create paths, containers/components, and associated files for new elements')
-  .arguments('<name>')
-  .action((name) =>
-  {
-    console.log('creating full stack: %s', name);
-  });
-
-mlnckMern
-  .command('create-client')
-  .alias('client')
-  .description('create client side container or component and associated files')
   .arguments('<name>')
   .action((name) =>
   {
