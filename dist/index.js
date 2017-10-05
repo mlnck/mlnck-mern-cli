@@ -66,8 +66,8 @@ mlnckMern
   });
 
 mlnckMern
-  .command('create-project')
-  .alias('create')
+  .command('configure-project')
+  .alias('configure')
   .description('configure initial settings of currently installed mlnck-mern project')
   .action(() =>
   {
@@ -126,9 +126,9 @@ mlnckMern
   });
 
 mlnckMern
-  .command('create-client')
-  .alias('client')
-  .description('create client side container or component and associated files')
+  .command('create-element')
+  .alias('create')
+  .description('create paths, containers/components, and associated files for new elements')
   .arguments('<name>')
   .action((name) =>
   {
