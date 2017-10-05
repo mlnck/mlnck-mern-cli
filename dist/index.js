@@ -1,7 +1,7 @@
 #!/usr/bin/env node --harmony
 
-
 const chalk = require('chalk'),
+  fs = require('fs'),
   inquirer = require('inquirer'),
   mlnckMern = require('commander'),
 
@@ -14,6 +14,16 @@ const chalk = require('chalk'),
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
   removeSample = require('./commands/remove-sample');
+
+mlnckMern.onRoot = function checkLoc(s)
+{
+  if(!fs.existsSync('./package.json'))
+  {
+    console.log(chalk.red.bold.underline('** Please run all scripts from the root of your project **'));
+    process.exit(1);
+  }
+  return s;
+};
 
 mlnckMern
   .version('0.0.1');
@@ -61,6 +71,7 @@ mlnckMern
   .description('configure initial settings of currently installed mlnck-mern project')
   .action(() =>
   {
+    mlnckMern.onRoot();
     const createProjectQuestions = [
       { type: 'input',
         name: 'author',
@@ -99,6 +110,7 @@ mlnckMern
   .description('remove smaple files and logs which may have been initially installed')
   .action(() =>
   {
+    mlnckMern.onRoot();
     const removeQuestions = [
       { type: 'confirm', name: 'removeSample', message: 'Remove sample files?', default: true }
     ];
@@ -120,6 +132,7 @@ mlnckMern
   .arguments('<name>')
   .action((name) =>
   {
+    mlnckMern.onRoot();
     const createClientQuestions = [
       { type: 'list', name: 'type', message: 'Type?', choices: ['container', 'component'] },
       { type: 'list', name: 'stateful', message: 'will this be a stateful component?', choices: ['yes', 'no'] },
@@ -146,6 +159,7 @@ mlnckMern
   .arguments('<path>')
   .action((path) =>
   {
+    mlnckMern.onRoot();
     if(path.charAt(0) !== '/'){ path = `/${path}`; } //eslint-disable-line
     // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
     const nestedPathArr = nestedPaths();
@@ -231,6 +245,7 @@ mlnckMern
   .arguments('<path>')
   .action((path) =>
   {
+    mlnckMern.onRoot();
     const srouteQuestions = [
       {
         type: 'list',
@@ -261,6 +276,7 @@ mlnckMern
   .arguments('<name>')
   .action((name) =>
   {
+    mlnckMern.onRoot();
     const createSchemaQuestions = [
       { type: 'confirm', name: 'createSchema', message: `Create schema ${name}?`, default: true }
     ];
