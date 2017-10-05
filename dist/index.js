@@ -240,7 +240,7 @@ mlnckMern
         filter(val){ return (val === 'yes'); }
       },
       { type: 'list',
-        name: 'schema',
+        name: 'createSchema',
         message: 'Create schema?',
         choices: ['yes', 'no'],
         filter(val){ return (val === 'yes'); }
