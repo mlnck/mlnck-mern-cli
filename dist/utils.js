@@ -59,8 +59,9 @@ const templateRename = function (path, uc, lc)
       }
       else
       { // configure template file
-        console.log(chalk.magenta(`-- configuring ${file} template`));
         let configuredData = fs.readFileSync(curPath, 'utf8');
+        if(configuredData.match(/xxx/gi))
+        { console.log(chalk.magenta(`-- configuring ${file} template`)); }
         configuredData = configuredData.replace(/Xxx/g, uc);
         configuredData = configuredData.replace(/xxx/g, lc);
         fs.writeFileSync(curPath, configuredData);
