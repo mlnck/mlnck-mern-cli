@@ -29,7 +29,7 @@ mlnckMern
   .version('0.0.1');
 
 mlnckMern
-  .command('new')
+  .command('create')
   .description('install new mlnck-mern project')
   .arguments('<project-name> [prev-version]')
   .action((projectName, prevVersion) =>
@@ -87,6 +87,7 @@ mlnckMern
         name: 'sample',
         message: 'Install sample project?',
         choices: ['yes', 'no'],
+        default: 'no',
         filter(val){ return (val === 'yes'); }
       },
       { type: 'list',
@@ -126,8 +127,8 @@ mlnckMern
   });
 
 mlnckMern
-  .command('create-element')
-  .alias('create')
+  .command('new-element')
+  .alias('new')
   .description('create paths, containers/components, and associated files for new elements')
   .arguments('<name>')
   .action((name) =>
@@ -159,7 +160,7 @@ mlnckMern
   .arguments('<path>')
   .action((path) =>
   {
-    mlnckMern.onRoot();
+    // mlnckMern.onRoot();
     if(path.charAt(0) !== '/'){ path = `/${path}`; } //eslint-disable-line
     // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
     const nestedPathArr = nestedPaths();

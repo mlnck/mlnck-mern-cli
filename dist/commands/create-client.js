@@ -29,7 +29,6 @@ function createFile()
   console.log(chalk.magenta('-- creating file'));
   sh.cp(`${compOpts.templatePath}index.js`, `${compOpts.destDir}index.js`);
 
-  sh.cd(compOpts.destDir);
   console.log(chalk.magenta('configuring template name: '));
   if(fs.statSync(`${compOpts.destDir}index.js`).isFile())
   {
