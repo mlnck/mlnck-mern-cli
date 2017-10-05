@@ -66,8 +66,8 @@ mlnckMern
   });
 
 mlnckMern
-  .command('create-project')
-  .alias('create')
+  .command('configure-project')
+  .alias('configure')
   .description('configure initial settings of currently installed mlnck-mern project')
   .action(() =>
   {
@@ -123,6 +123,16 @@ mlnckMern
 
       process.exit(0);
     });
+  });
+
+mlnckMern
+  .command('create-full-stack-element')
+  .alias('create')
+  .description('create paths, containers/components, and associated files for new elements')
+  .arguments('<name>')
+  .action((name) =>
+  {
+    console.log('creating full stack: %s', name);
   });
 
 mlnckMern
