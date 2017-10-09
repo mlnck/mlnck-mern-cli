@@ -19,7 +19,8 @@ function removeSample()
       '/config/templates/client/containers/_Structure/index.js',
       '/config/utils/server/seed.db.js',
       '/config/utils/server/test-helpers.js',
-      '/server/server.js'
+      '/server/server.js',
+      '/client/_scss/main.scss', '/client/_scss/base/_main-settings.scss'
     ];
   rmrf =
     [

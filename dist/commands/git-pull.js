@@ -31,6 +31,9 @@ function gitPull(s)
 
   sh.exec('git pull https://github.com/mlnck/MERNSkeleton.git master');
   clearInterval(interval);
+
+  console.log(chalk.magenta.bold.bgBlackBright.dim(' Remember to  run:    '));
+  console.log(chalk.magenta.bold.bgBlackBright.dim(`\t$ cd ${s} `));
 }
 
 module.exports = gitPull;
