@@ -34,6 +34,7 @@ function gitPull(s)
 
   console.log(chalk.magenta.bold.bgBlackBright.dim(' Remember to  run:    '));
   console.log(chalk.magenta.bold.bgBlackBright.dim(`\t$ cd ${s} `));
+  console.log(chalk.magenta.bold.bgBlackBright.dim('\t$ mlnck-mern configure '));
 }
 
 module.exports = gitPull;
