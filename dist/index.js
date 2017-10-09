@@ -126,8 +126,6 @@ mlnckMern
     });
   });
 
-/////////booga
-
 mlnckMern
   .command('new-full-stack-element')
   .alias('new')
@@ -321,13 +319,12 @@ mlnckMern
     });
   });
 
-/////
-
 mlnckMern
   .command('*')
   .action((env) =>
   {
     console.log('environment: "%s"', env);
+    console.log('mlnckMern:', mlnckMern);
   });
 
 mlnckMern.parse(process.argv);
