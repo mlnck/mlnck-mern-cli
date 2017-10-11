@@ -127,33 +127,6 @@ mlnckMern
   });
 
 mlnckMern
-  .command('new-full-stack-element')
-  .alias('new')
-  .description(`create paths, containers/components, and associated client
-                and server side files for new elements`)
-  .arguments('<name>')
-  .action((name) =>
-  {
-    mlnckMern.onRoot();
-    const createClientQuestions = [
-      { type: 'list', name: 'type', message: 'Type?', choices: ['container', 'component'] },
-      { type: 'list', name: 'stateful', message: 'will this be a stateful component?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'route', message: 'create route?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'dispatch', message: 'will this component dispatch actions?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'saga', message: 'will this component have side-effects?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'styled', message: 'will this component need javascript styling?', choices: ['yes', 'no'], default: 'no' }
-    ];
-
-    inquirer.prompt(createClientQuestions).then((answers) =>
-    {
-      answers.name = name; // eslint-disable-line
-      console.log('answers:', answers);
-      createClient(answers);
-      process.exit(0);
-    });
-  });
-
-mlnckMern
   .command('new-element')
   .alias('new')
   .description('create paths, containers/components, and associated files for new elements')

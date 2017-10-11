@@ -114,7 +114,10 @@ function renameTemplates()
 function handleRoute()
 {
   if(compOpts.route)
-  { sh.exec(`mlnck-mern croute /${compOpts.nameCapitalized}`); }
+  {
+    console.log(chalk.magenta.bold.bgBlackBright.dim(' Remember to  run:    '));
+    console.log(chalk.magenta.bold.bgBlackBright.dim(`\t$ mlnck-mern croute /${compOpts.nameCapitalized}`));
+  }
 }
 
 module.exports = createClient;
