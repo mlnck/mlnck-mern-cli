@@ -168,6 +168,8 @@ mlnckMern
     // console.log('nestedPathArray:', nestedPathArr);
 
     const compName = path.split('/').pop(),
+      compNameCapitalized = compName.charAt(0).toUpperCase() + compName.substr(1),
+      compNamePlural = (compName.charAt(compName.length - 1) === 's') ? compNameCapitalized : `${compNameCapitalized}s`,
       crouteQuestions = [
         { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
         {
@@ -223,12 +225,52 @@ mlnckMern
           message: 'Path is exact?',
           filter(val){ return (val === 'yes'); }
         },
-        { type: 'input', name: 'loadkey', message: 'pre-processed db query key (null):' },
+        /* { type: 'input', name: 'loadkey', message: 'pre-processed server side controller:' },
         { type: 'input',
           name: 'loadfnc',
           message: 'pre-processed db query function (null):',
           when(answers)
           { return answers.loadkey; }
+        } */
+        { type: 'list',
+          name: 'loadcontroller',
+          message: 'pre-processed server side controller:',
+          choices: ['null', `${compName.toLowerCase()}.controller.js`, 'other'],
+          default: 'null' },
+        { type: 'input',
+          name: 'loadcontroller',
+          message: 'enter custom pre-processed server side controller:',
+          when(answers)
+          { return answers.loadcontroller === 'other'; },
+          validate(value)
+          {
+            const valid = !!(value.length);
+            return (valid) ? true : 'Please enter a base container name';
+          }
+        },
+        { type: 'list',
+          name: 'loadfnc',
+          message: 'pre-processed server side method:',
+          choices: [`getAll${compNamePlural}`, 'other', 'null'],
+          when(answers)
+          { return answers.loadcontroller !== 'null'; }
+        },
+        { type: 'input',
+          name: 'loadfnc',
+          message: 'enter custom pre-processed server side method:',
+          when(answers)
+          { return answers.loadfnc === 'other'; },
+          validate(value)
+          {
+            const valid = !!(value.length);
+            return (valid) ? true : 'Please enter a controller method to call/create';
+          }
+        },
+        { type: 'confirm',
+          name: 'createSchemaDne',
+          message: `create ${compNameCapitalized} schema if it does not exist?`,
+          when(answers)
+          { return answers.loadfnc !== 'null'; },
         }
       ];
     inquirer.prompt(crouteQuestions).then((answers) =>
