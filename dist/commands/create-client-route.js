@@ -151,7 +151,7 @@ function addNestedRoute()
       .replace(/~!~/g, '/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
       .concat(closingRegex), 'g');
-  console.log('regexPath:', regexPath);
+  // console.log('regexPath:', regexPath);
 
   const nestedPathMatch = routes.match(regexPath);
 
@@ -167,7 +167,7 @@ function addNestedRoute()
     pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
     hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
   console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
-  console.log('rteWithHash:', rteWithHash);
+  // console.log('rteWithHash:', rteWithHash);
   let insertAt = nestedPathMatch[0].length;
   // let insertAt = nestedPathMatch[0].length + 1;
   if(!hasChildRoutes)
