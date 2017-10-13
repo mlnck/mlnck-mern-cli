@@ -2,10 +2,12 @@
 
 const chalk = require('chalk'),
   fs = require('fs'),
+  fuzzy = require('fuzzy'),
   inquirer = require('inquirer'),
   mlnckMern = require('commander'),
+  Promise = require('promise'),
 
-  { dirExists, nestedPaths } = require('./utils'),
+  { dirExists, nestedPaths, filesInDir } = require('./utils'),
 
   createClient = require('./commands/create-client'),
   createClientRoute = require('./commands/create-client-route'),
@@ -14,6 +16,8 @@ const chalk = require('chalk'),
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
   removeSample = require('./commands/remove-sample');
+
+inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 mlnckMern.onRoot = function checkLoc(s)
 {
@@ -171,7 +175,7 @@ mlnckMern
       compNameCapitalized = compName.charAt(0).toUpperCase() + compName.substr(1),
       compNamePlural = (compName.charAt(compName.length - 1) === 's') ? compNameCapitalized : `${compNameCapitalized}s`,
       crouteQuestions = [
-        { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
+        { type: 'confirm', name: 'verifyPath', message: `Path Endpoint is ${path}(true):`, default: true },
         {
           type: 'input',
           name: 'pathOverride',
@@ -225,33 +229,34 @@ mlnckMern
           message: 'Path is exact?',
           filter(val){ return (val === 'yes'); }
         },
-        /* { type: 'input', name: 'loadkey', message: 'pre-processed server side controller:' },
-        { type: 'input',
-          name: 'loadfnc',
-          message: 'pre-processed db query function (null):',
-          when(answers)
-          { return answers.loadkey; }
-        } */
         { type: 'list',
           name: 'loadcontroller',
           message: 'pre-processed server side controller:',
           choices: ['null', `${compName.toLowerCase()}.controller.js`, 'other'],
-          default: 'null' },
-        { type: 'input',
+          default: 'null',
+          validate(){ return true; } },
+        {
+          type: 'autocomplete',
           name: 'loadcontroller',
+          suggestOnly: true,
           message: 'enter custom pre-processed server side controller:',
+          source: searchControllers,
+          pageSize: 4,
           when(answers)
-          { return answers.loadcontroller === 'other'; },
-          validate(value)
+          { console.log(chalk.magenta.bold('Begin typing to filter controllers or create a new one.')); return answers.loadcontroller === 'other'; },
+          validate(v)
           {
-            const valid = !!(value.length);
-            return (valid) ? true : 'Please enter a base container name';
+            console.log('val:', v.substr(-3), '?');
+            return v.substr(-3) === '.js'
+              ? true
+              : `${v} controller cannot be blank, and must end in ".js"!\n     Remember to hit "tab" to select the element`;
           }
         },
         { type: 'list',
           name: 'loadfnc',
           message: 'pre-processed server side method:',
           choices: [`getAll${compNamePlural}`, 'other', 'null'],
+          default: 'other',
           when(answers)
           { return answers.loadcontroller !== 'null'; }
         },
@@ -270,9 +275,19 @@ mlnckMern
           name: 'createSchemaDne',
           message: `create ${compNameCapitalized} schema if it does not exist?`,
           when(answers)
-          { return answers.loadfnc !== 'null'; },
+          { return answers.loadcontroller !== 'null' && answers.loadfnc !== 'null'; },
         }
       ];
+    const cntrlrs = filesInDir('./server/controllers/');
+    function searchControllers(answers, input = '')
+    {
+      return new Promise(((resolve) =>
+      {
+        const fuzzyResult = fuzzy.filter(input, cntrlrs);
+        resolve(fuzzyResult.map((el) =>
+          el.original));
+      }));
+    }
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
       answers.path = path; // eslint-disable-line

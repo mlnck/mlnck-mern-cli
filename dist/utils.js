@@ -1,4 +1,5 @@
 const fs = require('fs'),
+  nodePath = require('path'),
   chalk = require('chalk');
 
 const dirExists = function (path)
@@ -127,4 +128,24 @@ const verifyUniqueFile = function (s)
   }
 };
 
-module.exports = { delDir, dirExists, nestedPaths, templateRename, verifyUniqueFile };
+const filesInDir = function (dirPath, fileType = '*')
+{
+  let files = fs.readdirSync(dirPath);
+  files = files.filter((itm) =>
+    nodePath.extname(itm).length // is not a directory
+                &&
+                (fileType === '*'
+                    || nodePath.extname(itm) === fileType));
+  return files;
+};
+
+const format = function (s)
+{
+  const tmpFirst = s.charAt(0);
+  return {
+    capitalized: tmpFirst.toUpperCase() + s.substr(1),
+    camelcased: tmpFirst.toLowerCase() + s.substr(1)
+  };
+};
+
+module.exports = { delDir, dirExists, format, nestedPaths, filesInDir, templateRename, verifyUniqueFile };

@@ -1,6 +1,7 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
+  { format, templateRename } = require('../utils'),
   basePath = process.env.PWD;
 
 let compOpts = {},
@@ -10,6 +11,70 @@ function createClientRoute(obj)
 {
   compOpts = { ...obj };
 
+  const curComponent = (compOpts.containerNameOverride)
+    ? compOpts.containerNameOverride
+    : compOpts.path.split('/').pop();
+  compOpts.curComponent = curComponent;
+
+  compOpts.destDir = `${basePath}/server/controllers`;
+  compOpts.format = format(compOpts.curComponent);
+
+  if(compOpts.loadcontroller !== 'null')
+  { handleServerSide(); }
+  else
+  { handleClientRoute(compOpts); }
+}
+function handleServerSide()
+{
+  console.log('');
+  console.log(chalk.green.bgBlackBright.bold(' configuring route  %s '), compOpts.path);
+
+  if(!fs.existsSync(`${basePath}/server/controllers/${compOpts.loadcontroller}`))
+  {
+    sh.cp(`${basePath}/config/templates/server/controllers/_Structure.js`,
+      `${compOpts.destDir}/${compOpts.loadcontroller}`);
+
+    console.log(chalk.magenta('-- added controller file '));
+
+    if(compOpts.loadfnc)
+    {
+      let cntrlr = fs.readFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, 'utf8');
+      cntrlr = cntrlr.replace('xxx(', `${compOpts.loadfnc}(`);
+      fs.writeFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, cntrlr);
+
+      console.log(chalk.magenta('-- added controller method '));
+    }
+    templateRename(compOpts.destDir, compOpts.format.capitalized, compOpts.format.camelcased);
+  }
+  else
+  if(compOpts.loadfnc)
+  {
+    let cntrlr = fs.readFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, 'utf8');
+    cntrlr += `\n\nexport function ${compOpts.loadfnc}(req, res)\n{ res.status(200).send('${compOpts.format.capitalized}'); }`;
+    fs.writeFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, cntrlr);
+
+    console.log(chalk.magenta('-- added controller method '));
+  }
+
+  if(compOpts.createSchemaDne)
+  {
+    sh.cp(`${basePath}/config/templates/server/models/_Structure.js`,
+      `${compOpts.destDir.replace('controllers', 'models')}/${compOpts.loadcontroller.replace('.controller.js', '.model.js')}`);
+    templateRename(compOpts.destDir.replace('controllers', 'models'), compOpts.format.capitalized, compOpts.format.camelcased);
+    console.log(chalk.magenta('-- added schema file '));
+  }
+  else
+  {
+    let cntrlr = fs.readFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, 'utf8');
+    cntrlr = cntrlr.replace(/imp.*[\s\S].?/g, '');// remove import model from controller
+    fs.writeFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, cntrlr);
+  }
+
+  handleClientRoute(compOpts);
+}
+
+function handleClientRoute(obj)
+{
   routes = fs.readFileSync(`${basePath}/client/routes.js`, 'utf8');
 
   console.log('');
@@ -49,11 +114,12 @@ function addRouteImport()
 
 function addRootRoute()
 {
+  console.log('compOpts:', compOpts);
   let newRoute = `,{
       path: '${(compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path}',
       exact: ${compOpts.exactPath},
       component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
-  if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
+  if(compOpts.loadcontroller !== 'null'){ newRoute += `,\nloadDataKey: '${compOpts.loadcontroller}',`; }
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
   newRoute += '}\n';
 
@@ -73,18 +139,19 @@ function addNestedRoute()
           path: '${newPath}',
           exact: ${compOpts.exactPath},
           component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
-  if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
+  if(compOpts.loadcontroller){ newRoute += `,\nloadDataKey: '${compOpts.loadcontroller}',`; }
   if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
   newRoute += '}\n';
 
   const parentContainerArray = compOpts.parentContainer.replace(/\/:/g, '~!~').split('/'),
-    closingRegex = (parentContainerArray.length > 2) ? ')' : '',
+    closingRegex = (parentContainerArray.length > 2) ? ').*[\\s\\S]*?(?=})' : '.*[\\s\\S]*?(?=})',
+    // [\s\S]*Hanger.*[\s\S]*?(HangerNest).*[\s\S]*?(?=})
     regexPath = new RegExp(parentContainerArray
       .join('){1}(\\/)?.*[\\s\\S]*?(')
       .replace(/~!~/g, '/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
       .concat(closingRegex), 'g');
-  // console.log('regexPath:', regexPath);
+  console.log('regexPath:', regexPath);
 
   const nestedPathMatch = routes.match(regexPath);
 
@@ -100,8 +167,9 @@ function addNestedRoute()
     pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
     hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
   console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
-
-  let insertAt = nestedPathMatch[0].length + 1;
+  console.log('rteWithHash:', rteWithHash);
+  let insertAt = nestedPathMatch[0].length;
+  // let insertAt = nestedPathMatch[0].length + 1;
   if(!hasChildRoutes)
   { newRoute = `,routes: [{${newRoute.substr(1)}]`; }
   else
