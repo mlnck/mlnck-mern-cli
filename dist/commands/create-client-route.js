@@ -2,6 +2,7 @@ const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
   { format, templateRename } = require('../utils'),
+  createSchema = require('./create-schema'),
   basePath = process.env.PWD;
 
 let compOpts = {},
@@ -20,7 +21,10 @@ function createClientRoute(obj)
   compOpts.format = format(compOpts.curComponent);
 
   if(compOpts.loadcontroller !== 'null')
-  { handleServerSide(); }
+  {
+    compOpts.serverFormat = format(compOpts.loadcontroller);
+    handleServerSide();
+  }
   else
   { handleClientRoute(compOpts); }
 }
@@ -44,13 +48,13 @@ function handleServerSide()
 
       console.log(chalk.magenta('-- added controller method '));
     }
-    templateRename(compOpts.destDir, compOpts.format.capitalized, compOpts.format.camelcased);
+    templateRename(compOpts.destDir, compOpts.serverFormat.capitalized, compOpts.serverFormat.camelcased);
   }
   else
   if(compOpts.loadfnc)
   {
     let cntrlr = fs.readFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, 'utf8');
-    cntrlr += `\n\nexport function ${compOpts.loadfnc}(req, res)\n{ res.status(200).send('${compOpts.format.capitalized}'); }`;
+    cntrlr += `\n\nexport function ${compOpts.loadfnc}(req, res)\n{ res.status(200).send('${compOpts.serverFormat.capitalized}'); }`;
     fs.writeFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, cntrlr);
 
     console.log(chalk.magenta('-- added controller method '));
@@ -58,10 +62,11 @@ function handleServerSide()
 
   if(compOpts.createSchemaDne)
   {
-    sh.cp(`${basePath}/config/templates/server/models/_Structure.js`,
-      `${compOpts.destDir.replace('controllers', 'models')}/${compOpts.loadcontroller.replace('.controller.js', '.model.js')}`);
-    templateRename(compOpts.destDir.replace('controllers', 'models'), compOpts.format.capitalized, compOpts.format.camelcased);
-    console.log(chalk.magenta('-- added schema file '));
+    // sh.cp(`${basePath}/config/templates/server/models/_Structure.js`,
+    //   `${compOpts.destDir.replace('controllers', 'models')}/${compOpts.loadcontroller.replace('.controller.js', '.model.js')}`);
+    // templateRename(compOpts.destDir.replace('controllers', 'models'), compOpts.serverFormat.capitalized, compOpts.serverFormat.camelcased);
+    // console.log(chalk.magenta('-- added schema file '));
+    createSchema(compOpts.serverFormat.camelcased);
   }
   else
   {
@@ -144,16 +149,19 @@ function addNestedRoute()
   newRoute += '}\n';
 
   const parentContainerArray = compOpts.parentContainer.replace(/\/:/g, '~!~').split('/'),
-    closingRegex = (parentContainerArray.length > 2) ? ').*[\\s\\S]*?(?=})' : '.*[\\s\\S]*?(?=})',
+    closingRegex = (parentContainerArray.length > 2) ? ').*[\\s\\S]*?(routes.*\\[|(?=}))' : '\\\'.*',
     // [\s\S]*Hanger.*[\s\S]*?(HangerNest).*[\s\S]*?(?=})
     regexPath = new RegExp(parentContainerArray
       .join('){1}(\\/)?.*[\\s\\S]*?(')
       .replace(/~!~/g, '/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
       .concat(closingRegex), 'g');
-  // console.log('regexPath:', regexPath);
+  console.log('regexPath:', regexPath);
+  // console.log('routes:',routes);
+
 
   const nestedPathMatch = routes.match(regexPath);
+  // console.log('\n\nnestedPathMatch:',nestedPathMatch);
 
   // Because node does not support .test() with regex we have to use a bit of a workaround
   // step1 - find path in routes
@@ -164,17 +172,35 @@ function addNestedRoute()
   const matchedLen = nestedPathMatch[0].length,
     hash = new Date().getTime(),
     rteWithHash = insertIntoRoutes(matchedLen, hash),
-    pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
+    pathObjStr = rteWithHash.match(new RegExp(`\\w*:.*${hash}`, 'g')), // use this to determine if has routes
+    // then if needed below (inside !hasChildRoutes) - change insertAt to equal - find this: \\w*:.*${hash}[\\s\\S]*?(?=})
+
+
+    // pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
     hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
   console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
   // console.log('rteWithHash:', rteWithHash);
+  // console.log('\n\n');
+  // console.log('pathObjStr[0]:',`${hash}.*[\\s\\S]*?}`,'|||',pathObjStr[0]);
   let insertAt = nestedPathMatch[0].length;
-  // let insertAt = nestedPathMatch[0].length + 1;
   if(!hasChildRoutes)
-  { newRoute = `,routes: [{${newRoute.substr(1)}]`; }
+  {
+    const noChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?}`, 'g'));
+    // let noChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?(?=.?})`, 'g'));
+    console.log('noChildInsertAt:', noChildInsertAt);
+    console.log('\n\n');
+    console.log('rteWithHash:', rteWithHash);
+    console.log('\n\n');
+    console.log('[\\s\\S]*\\w*:.*1507949965638[\\s\\S]*?}');
+    console.log('\n\n');
+    console.log(noChildInsertAt[0].length, '||||', String(hash).length);
+    insertAt = noChildInsertAt[0].length - String(hash).length - 1;
+    newRoute = `,routes: [{${newRoute.substr(1)}]`;
+  }
+  // { newRoute = `,routes: [{${newRoute.substr(1)}]`; }
   else
   {
-    insertAt += (pathObjStr[0].indexOf('routes: [') - 1);
+    // insertAt += (pathObjStr[0].indexOf('routes: [') - 1);
     newRoute += ',';
   }
 
@@ -192,6 +218,10 @@ function insertIntoRoutes(i, s)
 function tidyRoutes()
 {
   console.log(chalk.magenta('-- tidying up generated code '));
+
+  console.log(chalk.black.bold.bgYellow(' If server side routes are needed, run:    '));
+  console.log(chalk.black.bold.bgYellow(`\t$ mlnck-mern sroute ${(compOpts.pathOverride) ? compOpts.pathOverride.replace('/', '') : compOpts.path.replace('/', '')} `));
+
   return (sh.which('yarn'))
     ? sh.exec(`yarn eslint --fix ${basePath}/client/routes.js`)
     : sh.exec(`npm run eslint --fix ${basePath}/client/routes.js`);

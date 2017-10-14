@@ -164,18 +164,20 @@ mlnckMern
   .arguments('<path>')
   .action((path) =>
   {
-    // mlnckMern.onRoot();
     if(path.charAt(0) !== '/'){ path = `/${path}`; } //eslint-disable-line
-    // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
     const nestedPathArr = nestedPaths();
     nestedPathArr.shift();
-    // console.log('nestedPathArray:', nestedPathArr);
 
     const compName = path.split('/').pop(),
       compNameCapitalized = compName.charAt(0).toUpperCase() + compName.substr(1),
       compNamePlural = (compName.charAt(compName.length - 1) === 's') ? compNameCapitalized : `${compNameCapitalized}s`,
       crouteQuestions = [
-        { type: 'confirm', name: 'verifyPath', message: `Path Endpoint is ${path}(true):`, default: true },
+        { type: 'list',
+          name: 'verifyPath',
+          message: `Path Endpoint is ${path}:`,
+          choices: ['Yes', 'No'],
+          default: 'Yes',
+          filter(val){ return (val === 'Yes'); } },
         {
           type: 'input',
           name: 'pathOverride',
@@ -190,7 +192,12 @@ mlnckMern
           },
           filter: String
         },
-        { type: 'confirm', name: 'containerName', message: `component/container name is: ${compName}?` },
+        { type: 'list',
+          name: 'containerName',
+          message: `component/container name is: ${compName}?`,
+          choices: ['Yes', 'No'],
+          default: 'Yes',
+          filter(val){ return (val === 'Yes'); } },
         {
           type: 'input',
           name: 'containerNameOverride',
@@ -308,13 +315,13 @@ mlnckMern
       {
         type: 'list',
         name: 'createController',
-        message: 'Create controller?',
+        message: 'Create controller if it does not exist?',
         choices: ['yes', 'no'],
         filter(val){ return (val === 'yes'); }
       },
       { type: 'list',
         name: 'createSchema',
-        message: 'Create schema?',
+        message: 'Create schema if it does not exist?',
         choices: ['yes', 'no'],
         filter(val){ return (val === 'yes'); }
       }

@@ -115,8 +115,8 @@ function handleRoute()
 {
   if(compOpts.route)
   {
-    console.log(chalk.magenta.bold.bgBlackBright.dim(' Remember to  run:    '));
-    console.log(chalk.magenta.bold.bgBlackBright.dim(`\t$ mlnck-mern croute /${compOpts.nameCapitalized}`));
+    console.log(chalk.black.bold.bgYellow(' Remember to  run:    '));
+    console.log(chalk.black.bold.bgYellow(`\t$ mlnck-mern croute /${compOpts.nameCapitalized}`));
   }
 }
 

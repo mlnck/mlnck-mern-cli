@@ -40,8 +40,12 @@ function handleCreateController(b, bb)
     routeFileStr = routeFileStr.replace(/.*models.*/g, '');
     fs.writeFileSync(routeFile, routeFileStr);
 
-    console.log(chalk.magenta('-- creating controllers file'));
-    sh.cp(`${basePath}/config/templates/server/controllers/_Structure.js`, `${contFile}`);
+    if(!fs.existsSync(contFile))
+    { // possible that controller was created within create-client-route
+      console.log(chalk.magenta('-- creating controllers file'));
+      sh.cp(`${basePath}/config/templates/server/controllers/_Structure.js`, `${contFile}`);
+    }
+
     if(!bb)
     { // no schema file
       let controllerFileStr = fs.readFileSync(contFile, 'utf8');
