@@ -150,18 +150,15 @@ function addNestedRoute()
 
   const parentContainerArray = compOpts.parentContainer.replace(/\/:/g, '~!~').split('/'),
     closingRegex = (parentContainerArray.length > 2) ? ').*[\\s\\S]*?(routes.*\\[|(?=}))' : '\\\'.*',
-    // [\s\S]*Hanger.*[\s\S]*?(HangerNest).*[\s\S]*?(?=})
     regexPath = new RegExp(parentContainerArray
       .join('){1}(\\/)?.*[\\s\\S]*?(')
       .replace(/~!~/g, '/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
       .concat(closingRegex), 'g');
   // console.log('regexPath:', regexPath);
-  // console.log('routes:',routes);
 
 
   const nestedPathMatch = routes.match(regexPath);
-  // console.log('\n\nnestedPathMatch:',nestedPathMatch);
 
   // Because node does not support .test() with regex we have to use a bit of a workaround
   // step1 - find path in routes
@@ -175,9 +172,6 @@ function addNestedRoute()
     // use this to determine if the current route already has children routes
     // (colon to allow "root route" comment to have no issues)
     pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?(path|routes:|]\\/\\/.*root)`, 'g')),
-    // pathObjStr = rteWithHash.match(new RegExp(`\\w*:.*${hash}`, 'g')), // use this to determine if has routes
-    // pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
-    // hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
     hasChildRoutes = (!!~pathObjStr[0].indexOf('routes:'));
   console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
   console.log('rteWithHash:', rteWithHash);
@@ -187,13 +181,6 @@ function addNestedRoute()
   if(!hasChildRoutes)
   {
     const noChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?}`, 'g'));
-    // console.log('noChildInsertAt:', noChildInsertAt);
-    // console.log('\n\n');
-    // console.log('rteWithHash:', rteWithHash);
-    // console.log('\n\n');
-    // console.log(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?}`);
-    // console.log('\n\n');
-    // console.log(noChildInsertAt[0].length, '||||', String(hash).length);
     insertAt = noChildInsertAt[0].length - String(hash).length - 1;
     newRoute = `,routes: [{${newRoute.substr(1)}]`;
   }
@@ -209,7 +196,7 @@ function addNestedRoute()
 
   console.log(chalk.magenta('-- route configured'));
   console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
-  // console.log(newRouteObj);
+
   return newRouteObj;
 }
 
@@ -221,7 +208,10 @@ function tidyRoutes()
   console.log(chalk.magenta('-- tidying up generated code '));
 
   console.log(chalk.black.bold.bgYellow(' If server side routes are needed, run:    '));
-  console.log(chalk.black.bold.bgYellow(`\t$ mlnck-mern sroute ${(compOpts.pathOverride) ? compOpts.pathOverride.replace('/', '') : compOpts.path.replace('/', '')} `));
+  console.log(chalk.black.bold.bgYellow(`\t$ mlnck-mern sroute
+                                              ${(compOpts.pathOverride)
+    ? compOpts.pathOverride.replace('/', '')
+    : compOpts.path.replace('/', '')} `));
 
   return (sh.which('yarn'))
     ? sh.exec(`yarn eslint --fix ${basePath}/client/routes.js`)
