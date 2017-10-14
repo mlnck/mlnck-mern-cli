@@ -231,10 +231,12 @@ mlnckMern
           when(answers)
           { return answers.hasParent; }
         },
-        { type: 'confirm',
+        { type: 'list',
           name: 'exactPath',
           message: 'Path is exact?',
-          filter(val){ return (val === 'yes'); }
+          choices: ['Yes', 'No'],
+          default: 'Yes',
+          filter(val){ return (val === 'Yes'); }
         },
         { type: 'list',
           name: 'loadcontroller',
@@ -278,11 +280,14 @@ mlnckMern
             return (valid) ? true : 'Please enter a controller method to call/create';
           }
         },
-        { type: 'confirm',
+        { type: 'list',
           name: 'createSchemaDne',
           message: `create ${compNameCapitalized} schema if it does not exist?`,
+          choices: ['Yes', 'No'],
+          default: 'Yes',
           when(answers)
           { return answers.loadcontroller !== 'null' && answers.loadfnc !== 'null'; },
+          filter(val){ return (val === 'Yes'); }
         }
       ];
     const cntrlrs = filesInDir('./server/controllers/');

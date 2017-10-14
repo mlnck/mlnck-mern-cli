@@ -22,7 +22,8 @@ function createClientRoute(obj)
 
   if(compOpts.loadcontroller !== 'null')
   {
-    compOpts.serverFormat = format(compOpts.loadcontroller);
+    const baseName = compOpts.loadcontroller.split('.');
+    compOpts.serverFormat = format(baseName[0]);
     handleServerSide();
   }
   else
@@ -62,11 +63,10 @@ function handleServerSide()
 
   if(compOpts.createSchemaDne)
   {
-    // sh.cp(`${basePath}/config/templates/server/models/_Structure.js`,
-    //   `${compOpts.destDir.replace('controllers', 'models')}/${compOpts.loadcontroller.replace('.controller.js', '.model.js')}`);
-    // templateRename(compOpts.destDir.replace('controllers', 'models'), compOpts.serverFormat.capitalized, compOpts.serverFormat.camelcased);
-    // console.log(chalk.magenta('-- added schema file '));
-    createSchema(compOpts.serverFormat.camelcased);
+    if(fs.existsSync(`${basePath}/server/models/${compOpts.loadcontroller.replace('controller', 'model')}`))
+    { console.log(chalk.magenta('-- pre-existing schema file. Did not create. ')); }
+    else
+    { createSchema(compOpts.serverFormat.camelcased); }
   }
   else
   {
@@ -156,7 +156,7 @@ function addNestedRoute()
       .replace(/~!~/g, '/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
       .concat(closingRegex), 'g');
-  console.log('regexPath:', regexPath);
+  // console.log('regexPath:', regexPath);
   // console.log('routes:',routes);
 
 
@@ -172,35 +172,36 @@ function addNestedRoute()
   const matchedLen = nestedPathMatch[0].length,
     hash = new Date().getTime(),
     rteWithHash = insertIntoRoutes(matchedLen, hash),
-    pathObjStr = rteWithHash.match(new RegExp(`\\w*:.*${hash}`, 'g')), // use this to determine if has routes
-    // then if needed below (inside !hasChildRoutes) - change insertAt to equal - find this: \\w*:.*${hash}[\\s\\S]*?(?=})
-
-
+    // use this to determine if the current route already has children routes
+    // (colon to allow "root route" comment to have no issues)
+    pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?(path|routes:|]\\/\\/.*root)`, 'g')),
+    // pathObjStr = rteWithHash.match(new RegExp(`\\w*:.*${hash}`, 'g')), // use this to determine if has routes
     // pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
-    hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
+    // hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
+    hasChildRoutes = (!!~pathObjStr[0].indexOf('routes:'));
   console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
-  // console.log('rteWithHash:', rteWithHash);
-  // console.log('\n\n');
-  // console.log('pathObjStr[0]:',`${hash}.*[\\s\\S]*?}`,'|||',pathObjStr[0]);
+  console.log('rteWithHash:', rteWithHash);
+  console.log('\n\n');
+  console.log('pathObjStr[0]:', `${hash}.*[\\s\\S]*?(path|routes:)`, '|||', pathObjStr[0]);
   let insertAt = nestedPathMatch[0].length;
   if(!hasChildRoutes)
   {
     const noChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?}`, 'g'));
-    // let noChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?(?=.?})`, 'g'));
-    console.log('noChildInsertAt:', noChildInsertAt);
-    console.log('\n\n');
-    console.log('rteWithHash:', rteWithHash);
-    console.log('\n\n');
-    console.log('[\\s\\S]*\\w*:.*1507949965638[\\s\\S]*?}');
-    console.log('\n\n');
-    console.log(noChildInsertAt[0].length, '||||', String(hash).length);
+    // console.log('noChildInsertAt:', noChildInsertAt);
+    // console.log('\n\n');
+    // console.log('rteWithHash:', rteWithHash);
+    // console.log('\n\n');
+    // console.log(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?}`);
+    // console.log('\n\n');
+    // console.log(noChildInsertAt[0].length, '||||', String(hash).length);
     insertAt = noChildInsertAt[0].length - String(hash).length - 1;
     newRoute = `,routes: [{${newRoute.substr(1)}]`;
   }
-  // { newRoute = `,routes: [{${newRoute.substr(1)}]`; }
   else
   {
-    // insertAt += (pathObjStr[0].indexOf('routes: [') - 1);
+    const withChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w.*${hash}[\\s\\S]*?routes.*\\[`, 'g'));
+    insertAt = withChildInsertAt[0].length - String(hash).length;
+
     newRoute += ',';
   }
 
