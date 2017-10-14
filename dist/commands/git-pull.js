@@ -32,9 +32,9 @@ function gitPull(s)
   sh.exec('git pull https://github.com/mlnck/MERNSkeleton.git master');
   clearInterval(interval);
 
-  console.log(chalk.magenta.bold.bgBlackBright.dim(' Remember to  run:    '));
-  console.log(chalk.magenta.bold.bgBlackBright.dim(`\t$ cd ${s} `));
-  console.log(chalk.magenta.bold.bgBlackBright.dim('\t$ mlnck-mern configure '));
+  console.log(chalk.black.bold.bgYellow(' Remember to  run:    '));
+  console.log(chalk.black.bold.bgYellow(`\t$ cd ${s} `));
+  console.log(chalk.black.bold.bgYellow('\t$ mlnck-mern configure '));
 }
 
 module.exports = gitPull;
