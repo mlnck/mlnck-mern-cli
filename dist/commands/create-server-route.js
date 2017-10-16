@@ -1,7 +1,7 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
-  { templateRename, verifyUniqueFile, format } = require('../utils'),
+  { templateRename, format } = require('../utils'),
   createSchema = require('./create-schema'),
   basePath = process.env.PWD;
 
@@ -9,7 +9,8 @@ let routeRoot,
   routeFile,
   contRoot,
   contFile,
-  baseName;
+  baseName,
+  formatted;
 
 function createServerRoute(routeObj)
 {
@@ -18,7 +19,7 @@ function createServerRoute(routeObj)
   routeFile = `${routeRoot}/${routeObj.path.toLowerCase()}.routes.js`;
   contRoot = `${basePath}/server/controllers`;
   contFile = `${contRoot}/${routeObj.path.toLowerCase()}.controller.js`;
-  baseName = routeObj.path,
+  baseName = routeObj.path;
   formatted = format(baseName);
 
   console.log(chalk.green.bgBlackBright.bold(' creating new server route: %s '), routeObj.path);
@@ -28,11 +29,10 @@ function createServerRoute(routeObj)
   sh.cp(`${basePath}/config/templates/server/routes/_Structure.js`, `${routeFile}`);
   templateRename(routeRoot, baseName);
 
-  let contRteImp = `import ${formatted.camelcased}Routes from './routes/${formatted.camelcased}.routes';`,
+  const contRteImp = `import ${formatted.camelcased}Routes from './routes/${formatted.camelcased}.routes';`,
     contImport = `import * as ${formatted.capitalized}Controller from './controllers/${formatted.camelcased}.controller'; // eslint-disable-line`,
-    appUse = `app.use('/${formatted.camelcased}', ${formatted.camelcased}Routes);`,
-    srvrFile = `${basePath}/server/server.js`,
-    srvrFileStr = fs.readFileSync(`${srvrFile}`, 'utf8');
+    srvrFile = `${basePath}/server/server.js`;
+  let srvrFileStr = fs.readFileSync(`${srvrFile}`, 'utf8');
 
   srvrFileStr = srvrFileStr.replace('Server Side Routes:', `Server Side Routes:\n${contRteImp}\n${contImport}`);
   fs.writeFileSync(srvrFile, srvrFileStr);
