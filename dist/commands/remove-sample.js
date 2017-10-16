@@ -16,6 +16,7 @@ function removeSample()
       '/client/containers/Root/index.js',
       '/client/index.js', '/client/reducers.js', '/client/routes.js', '/client/store.js',
       '/config/server/basehtml.js',
+      '/config/templates/client/components/_Structure/index.js',
       '/config/templates/client/containers/_Structure/index.js',
       '/config/utils/server/seed.db.js',
       '/config/utils/server/test-helpers.js',

@@ -140,11 +140,11 @@ mlnckMern
     mlnckMern.onRoot();
     const createClientQuestions = [
       { type: 'list', name: 'type', message: 'Type?', choices: ['container', 'component'] },
-      { type: 'list', name: 'stateful', message: 'will this be a stateful component?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'route', message: 'create route?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'dispatch', message: 'will this component dispatch actions?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'saga', message: 'will this component have side-effects?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'styled', message: 'will this component need javascript styling?', choices: ['yes', 'no'], default: 'no' }
+      { type: 'list', name: 'stateful', message: 'will this be a stateful component?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'route', message: 'create route?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'dispatch', message: 'will this component dispatch actions?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'saga', message: 'will this component have side-effects?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'styled', message: 'will this component need javascript styling?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); }, default: 'no' }
     ];
 
     inquirer.prompt(createClientQuestions).then((answers) =>
@@ -252,7 +252,11 @@ mlnckMern
           source: searchControllers,
           pageSize: 4,
           when(answers)
-          { console.log(chalk.magenta.bold('Begin typing to filter controllers or create a new one.')); return answers.loadcontroller === 'other'; },
+          {
+            if(answers.loadcontroller === 'other')
+            { console.log(chalk.magenta.bold('Begin typing to filter controllers or create a new one.')); }
+            return answers.loadcontroller === 'other';
+          },
           validate(v)
           {
             console.log('val:', v.substr(-3), '?');
@@ -278,6 +282,17 @@ mlnckMern
           {
             const valid = !!(value.length);
             return (valid) ? true : 'Please enter a controller method to call/create';
+          }
+        },
+        { type: 'input',
+          name: 'loadkey',
+          message: 'enter the object key that will be used to access information on page render:',
+          when(answers)
+          { return answers.loadfnc !== 'null'; },
+          validate(value)
+          {
+            const valid = !!(value.length);
+            return (valid) ? true : 'Please enter a key name to use when data is populated';
           }
         },
         { type: 'list',
