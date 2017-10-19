@@ -1,7 +1,7 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
-  { templateRename, verifyUniqueFile } = require('../utils'),
+  { templateRename, format } = require('../utils'),
   createSchema = require('./create-schema'),
   basePath = process.env.PWD;
 
@@ -9,24 +9,33 @@ let routeRoot,
   routeFile,
   contRoot,
   contFile,
-  baseName;
+  baseName,
+  formatted;
 
 function createServerRoute(routeObj)
 {
   // console.log('routeObj',routeObj);
-  // routeObj { createController: true, createSchema: true, path: 'skeletonz' }
   routeRoot = `${basePath}/server/routes`;
   routeFile = `${routeRoot}/${routeObj.path.toLowerCase()}.routes.js`;
   contRoot = `${basePath}/server/controllers`;
   contFile = `${contRoot}/${routeObj.path.toLowerCase()}.controller.js`;
   baseName = routeObj.path;
-  verifyUniqueFile(routeFile);
+  formatted = format(baseName);
 
   console.log(chalk.green.bgBlackBright.bold(' creating new server route: %s '), routeObj.path);
+  console.log('contFile:', formatted);
 
   console.log(chalk.magenta('-- creating routes file'));
   sh.cp(`${basePath}/config/templates/server/routes/_Structure.js`, `${routeFile}`);
   templateRename(routeRoot, baseName);
+
+  const contRteImp = `import ${formatted.camelcased}Routes from './routes/${formatted.camelcased}.routes';`,
+    contImport = `import * as ${formatted.capitalized}Controller from './controllers/${formatted.camelcased}.controller'; // eslint-disable-line`,
+    srvrFile = `${basePath}/server/server.js`;
+  let srvrFileStr = fs.readFileSync(`${srvrFile}`, 'utf8');
+
+  srvrFileStr = srvrFileStr.replace('Server Side Routes:', `Server Side Routes:\n${contRteImp}\n${contImport}`);
+  fs.writeFileSync(srvrFile, srvrFileStr);
 
   handleCreateController(routeObj.createController, routeObj.createSchema);
 }
@@ -40,8 +49,12 @@ function handleCreateController(b, bb)
     routeFileStr = routeFileStr.replace(/.*models.*/g, '');
     fs.writeFileSync(routeFile, routeFileStr);
 
-    console.log(chalk.magenta('-- creating controllers file'));
-    sh.cp(`${basePath}/config/templates/server/controllers/_Structure.js`, `${contFile}`);
+    if(!fs.existsSync(contFile))
+    { // possible that controller was created within create-client-route
+      console.log(chalk.magenta('-- creating controllers file'));
+      sh.cp(`${basePath}/config/templates/server/controllers/_Structure.js`, `${contFile}`);
+    }
+
     if(!bb)
     { // no schema file
       let controllerFileStr = fs.readFileSync(contFile, 'utf8');

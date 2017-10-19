@@ -69,7 +69,7 @@ function installPackages()
     if(sh.which('yarn'))
     {
       console.log(chalk.magenta('running: ') + chalk.underline('yarn'));
-      sh.exec('yarn');
+      sh.exec('yarn --verbose');
     }
     else
     {

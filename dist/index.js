@@ -2,10 +2,12 @@
 
 const chalk = require('chalk'),
   fs = require('fs'),
+  fuzzy = require('fuzzy'),
   inquirer = require('inquirer'),
   mlnckMern = require('commander'),
+  Promise = require('promise'),
 
-  { dirExists, nestedPaths } = require('./utils'),
+  { dirExists, nestedPaths, filesInDir } = require('./utils'),
 
   createClient = require('./commands/create-client'),
   createClientRoute = require('./commands/create-client-route'),
@@ -14,6 +16,8 @@ const chalk = require('chalk'),
   gitPull = require('./commands/git-pull.js'),
   installStack = require('./commands/install-stack'),
   removeSample = require('./commands/remove-sample');
+
+inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 mlnckMern.onRoot = function checkLoc(s)
 {
@@ -136,11 +140,11 @@ mlnckMern
     mlnckMern.onRoot();
     const createClientQuestions = [
       { type: 'list', name: 'type', message: 'Type?', choices: ['container', 'component'] },
-      { type: 'list', name: 'stateful', message: 'will this be a stateful component?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'route', message: 'create route?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'dispatch', message: 'will this component dispatch actions?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'saga', message: 'will this component have side-effects?', choices: ['yes', 'no'] },
-      { type: 'list', name: 'styled', message: 'will this component need javascript styling?', choices: ['yes', 'no'], default: 'no' }
+      { type: 'list', name: 'stateful', message: 'will this be a stateful component?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'route', message: 'create route?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'dispatch', message: 'will this component dispatch actions?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'saga', message: 'will this component have side-effects?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); } },
+      { type: 'list', name: 'styled', message: 'will this component need javascript styling?', choices: ['yes', 'no'], filter(val){ return (val === 'yes'); }, default: 'no' }
     ];
 
     inquirer.prompt(createClientQuestions).then((answers) =>
@@ -160,16 +164,20 @@ mlnckMern
   .arguments('<path>')
   .action((path) =>
   {
-    // mlnckMern.onRoot();
     if(path.charAt(0) !== '/'){ path = `/${path}`; } //eslint-disable-line
-    // dirExists(path);//not sure about this - if enabled then I think it would ruin custom pathing
     const nestedPathArr = nestedPaths();
     nestedPathArr.shift();
-    // console.log('nestedPathArray:', nestedPathArr);
 
     const compName = path.split('/').pop(),
+      compNameCapitalized = compName.charAt(0).toUpperCase() + compName.substr(1),
+      compNamePlural = (compName.charAt(compName.length - 1) === 's') ? compNameCapitalized : `${compNameCapitalized}s`,
       crouteQuestions = [
-        { type: 'confirm', name: 'verifyPath', message: `Path is ${path}(true):`, default: true },
+        { type: 'list',
+          name: 'verifyPath',
+          message: `Path Endpoint is ${path}:`,
+          choices: ['Yes', 'No'],
+          default: 'Yes',
+          filter(val){ return (val === 'Yes'); } },
         {
           type: 'input',
           name: 'pathOverride',
@@ -184,7 +192,12 @@ mlnckMern
           },
           filter: String
         },
-        { type: 'confirm', name: 'containerName', message: `component/container name is: ${compName}?` },
+        { type: 'list',
+          name: 'containerName',
+          message: `component/container name is: ${compName}?`,
+          choices: ['Yes', 'No'],
+          default: 'Yes',
+          filter(val){ return (val === 'Yes'); } },
         {
           type: 'input',
           name: 'containerNameOverride',
@@ -218,19 +231,90 @@ mlnckMern
           when(answers)
           { return answers.hasParent; }
         },
-        { type: 'confirm',
+        { type: 'list',
           name: 'exactPath',
           message: 'Path is exact?',
-          filter(val){ return (val === 'yes'); }
+          choices: ['Yes', 'No'],
+          default: 'Yes',
+          filter(val){ return (val === 'Yes'); }
         },
-        { type: 'input', name: 'loadkey', message: 'pre-processed db query key (null):' },
+        { type: 'list',
+          name: 'loadcontroller',
+          message: 'pre-processed server side controller:',
+          choices: ['null', `${compName.toLowerCase()}.controller.js`, 'other'],
+          default: 'null',
+          validate(){ return true; } },
+        {
+          type: 'autocomplete',
+          name: 'loadcontroller',
+          suggestOnly: true,
+          message: 'enter custom pre-processed server side controller:',
+          source: searchControllers,
+          pageSize: 4,
+          when(answers)
+          {
+            if(answers.loadcontroller === 'other')
+            { console.log(chalk.magenta.bold('Begin typing to filter controllers or create a new one.')); }
+            return answers.loadcontroller === 'other';
+          },
+          validate(v)
+          {
+            console.log('val:', v.substr(-3), '?');
+            return v.substr(-3) === '.js'
+              ? true
+              : `${v} controller cannot be blank, and must end in ".js"!\n     Remember to hit "tab" to select the element`;
+          }
+        },
+        { type: 'list',
+          name: 'loadfnc',
+          message: 'pre-processed server side method:',
+          choices: [`getAll${compNamePlural}`, 'other', 'null'],
+          default: 'other',
+          when(answers)
+          { return answers.loadcontroller !== 'null'; }
+        },
         { type: 'input',
           name: 'loadfnc',
-          message: 'pre-processed db query function (null):',
+          message: 'enter custom pre-processed server side method:',
           when(answers)
-          { return answers.loadkey; }
+          { return answers.loadfnc === 'other'; },
+          validate(value)
+          {
+            const valid = !!(value.length);
+            return (valid) ? true : 'Please enter a controller method to call/create';
+          }
+        },
+        { type: 'input',
+          name: 'loadkey',
+          message: 'enter the object key that will be used to access information on page render:',
+          when(answers)
+          { return answers.loadfnc !== 'null'; },
+          validate(value)
+          {
+            const valid = !!(value.length);
+            return (valid) ? true : 'Please enter a key name to use when data is populated';
+          }
+        },
+        { type: 'list',
+          name: 'createSchemaDne',
+          message: `create ${compNameCapitalized} schema if it does not exist?`,
+          choices: ['Yes', 'No'],
+          default: 'Yes',
+          when(answers)
+          { return answers.loadcontroller !== 'null' && answers.loadfnc !== 'null'; },
+          filter(val){ return (val === 'Yes'); }
         }
       ];
+    const cntrlrs = filesInDir('./server/controllers/');
+    function searchControllers(answers, input = '')
+    {
+      return new Promise(((resolve) =>
+      {
+        const fuzzyResult = fuzzy.filter(input, cntrlrs);
+        resolve(fuzzyResult.map((el) =>
+          el.original));
+      }));
+    }
     inquirer.prompt(crouteQuestions).then((answers) =>
     {
       answers.path = path; // eslint-disable-line
@@ -251,13 +335,13 @@ mlnckMern
       {
         type: 'list',
         name: 'createController',
-        message: 'Create controller?',
+        message: 'Create controller if it does not exist?',
         choices: ['yes', 'no'],
         filter(val){ return (val === 'yes'); }
       },
       { type: 'list',
         name: 'createSchema',
-        message: 'Create schema?',
+        message: 'Create schema if it does not exist?',
         choices: ['yes', 'no'],
         filter(val){ return (val === 'yes'); }
       }
@@ -297,6 +381,7 @@ mlnckMern
   .action((env) =>
   {
     console.log('environment: "%s"', env);
+    console.log('mlnckMern:', mlnckMern);
   });
 
 mlnckMern.parse(process.argv);

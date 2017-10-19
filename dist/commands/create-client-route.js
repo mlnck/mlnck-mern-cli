@@ -1,6 +1,8 @@
 const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
+  { format, templateRename } = require('../utils'),
+  createSchema = require('./create-schema'),
   basePath = process.env.PWD;
 
 let compOpts = {},
@@ -10,6 +12,74 @@ function createClientRoute(obj)
 {
   compOpts = { ...obj };
 
+  const curComponent = (compOpts.containerNameOverride)
+    ? compOpts.containerNameOverride
+    : compOpts.path.split('/').pop();
+  compOpts.curComponent = curComponent;
+
+  compOpts.destDir = `${basePath}/server/controllers`;
+  compOpts.format = format(compOpts.curComponent);
+
+  if(compOpts.loadcontroller !== 'null')
+  {
+    const baseName = compOpts.loadcontroller.split('.');
+    compOpts.serverFormat = format(baseName[0]);
+    handleServerSide();
+  }
+  else
+  { handleClientRoute(compOpts); }
+}
+function handleServerSide()
+{
+  console.log('');
+  console.log(chalk.green.bgBlackBright.bold(' configuring route  %s '), compOpts.path);
+
+  if(!fs.existsSync(`${basePath}/server/controllers/${compOpts.loadcontroller}`))
+  {
+    sh.cp(`${basePath}/config/templates/server/controllers/_Structure.js`,
+      `${compOpts.destDir}/${compOpts.loadcontroller}`);
+
+    console.log(chalk.magenta('-- added controller file '));
+
+    if(compOpts.loadfnc)
+    {
+      let cntrlr = fs.readFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, 'utf8');
+      cntrlr = cntrlr.replace(/export.*[\s\S]*?}/g, `export function ${compOpts.loadfnc}(o){ return 'xxx'; }`);
+      fs.writeFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, cntrlr);
+
+      console.log(chalk.magenta('-- added controller method '));
+    }
+    templateRename(compOpts.destDir, compOpts.serverFormat.capitalized, compOpts.serverFormat.camelcased);
+  }
+  else
+  if(compOpts.loadfnc)
+  {
+    let cntrlr = fs.readFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, 'utf8');
+    cntrlr += `\n\nexport function ${compOpts.loadfnc}(req, res)\n{ res.status(200).send('${compOpts.serverFormat.capitalized}'); }`;
+    fs.writeFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, cntrlr);
+
+    console.log(chalk.magenta('-- added controller method '));
+  }
+
+  if(compOpts.createSchemaDne)
+  {
+    if(fs.existsSync(`${basePath}/server/models/${compOpts.loadcontroller.replace('controller', 'model')}`))
+    { console.log(chalk.magenta('-- pre-existing schema file. Did not create. ')); }
+    else
+    { createSchema(compOpts.serverFormat.camelcased); }
+  }
+  else
+  {
+    let cntrlr = fs.readFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, 'utf8');
+    cntrlr = cntrlr.replace(/imp.*[\s\S].?/g, '');// remove import model from controller
+    fs.writeFileSync(`${compOpts.destDir}/${compOpts.loadcontroller}`, cntrlr);
+  }
+
+  handleClientRoute(compOpts);
+}
+
+function handleClientRoute(obj)
+{
   routes = fs.readFileSync(`${basePath}/client/routes.js`, 'utf8');
 
   console.log('');
@@ -49,12 +119,19 @@ function addRouteImport()
 
 function addRootRoute()
 {
+  console.log('compOpts:', compOpts);
   let newRoute = `,{
       path: '${(compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path}',
       exact: ${compOpts.exactPath},
       component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
+  const loadControllerFrist = compOpts.loadcontroller.charAt(0);
+  let loadControllerStr = compOpts.loadcontroller.split('.');
+  loadControllerStr = loadControllerStr[0];
+  console.log('loadControllerStr1:', loadControllerStr);
+  loadControllerStr = loadControllerFrist.toUpperCase() + loadControllerStr.substr(1);
+  console.log('loadControllerStr2:', loadControllerStr);
   if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
-  if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
+  if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${loadControllerStr}Controller.${compOpts.loadfnc}'`; }
   newRoute += '}\n';
 
   const newRouteObj = insertIntoRoutes(routes.lastIndexOf(']// root routes'), newRoute);
@@ -70,21 +147,28 @@ function addNestedRoute()
 
   const newPath = (compOpts.pathOverride) ? compOpts.pathOverride : compOpts.path;
   let newRoute = `{
-          path: '${newPath}',
+          path: '${newPath.toLowerCase()}',
           exact: ${compOpts.exactPath},
           component: ${(compOpts.containerNameOverride) ? compOpts.containerNameOverride : compOpts.path.split('/').pop()}`;
+  const loadControllerFrist = compOpts.loadcontroller.charAt(0);
+  let loadControllerStr = compOpts.loadcontroller.split('.');
+  loadControllerStr = loadControllerStr[0];
+  console.log('loadControllerStr1:', loadControllerStr);
+  loadControllerStr = loadControllerFrist.toUpperCase() + compOpts.loadcontroller.substr(1);
+  console.log('loadControllerStr2:', loadControllerStr);
   if(compOpts.loadkey){ newRoute += `,\nloadDataKey: '${compOpts.loadkey}',`; }
-  if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${compOpts.loadfnc}'`; }
+  if(compOpts.loadfnc){ newRoute += `\nloadDataFnc: '${loadControllerStr}Controller.${compOpts.loadfnc}'`; }
   newRoute += '}\n';
 
   const parentContainerArray = compOpts.parentContainer.replace(/\/:/g, '~!~').split('/'),
-    closingRegex = (parentContainerArray.length > 2) ? ')' : '',
+    closingRegex = (parentContainerArray.length > 2) ? ').*[\\s\\S]*?(routes.*\\[|(?=}))' : '\\\'.*',
     regexPath = new RegExp(parentContainerArray
       .join('){1}(\\/)?.*[\\s\\S]*?(')
       .replace(/~!~/g, '/:')
           .replace('){1}(\\/)?.*[\\s\\S]*?', '').replace('(','[\\s\\S]*').replace('){1}(\\/)?','') //eslint-disable-line
       .concat(closingRegex), 'g');
   // console.log('regexPath:', regexPath);
+
 
   const nestedPathMatch = routes.match(regexPath);
 
@@ -97,16 +181,26 @@ function addNestedRoute()
   const matchedLen = nestedPathMatch[0].length,
     hash = new Date().getTime(),
     rteWithHash = insertIntoRoutes(matchedLen, hash),
-    pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?}`, 'g')),
-    hasChildRoutes = (!!~pathObjStr[0].indexOf('routes: ['));
+    // use this to determine if the current route already has children routes
+    // (colon to allow "root route" comment to have no issues)
+    pathObjStr = rteWithHash.match(new RegExp(`${hash}.*[\\s\\S]*?(path|routes:|]\\/\\/.*root)`, 'g')),
+    hasChildRoutes = (!!~pathObjStr[0].indexOf('routes:'));
   console.log(chalk.magenta(`-- parent ${(hasChildRoutes) ? 'has' : 'does not have'} pre-existing child route(s) `));
-
-  let insertAt = nestedPathMatch[0].length + 1;
+  // console.log('rteWithHash:', rteWithHash);
+  // console.log('\n\n');
+  // console.log('pathObjStr[0]:', `${hash}.*[\\s\\S]*?(path|routes:)`, '|||', pathObjStr[0]);
+  let insertAt = nestedPathMatch[0].length;
   if(!hasChildRoutes)
-  { newRoute = `,routes: [{${newRoute.substr(1)}]`; }
+  {
+    const noChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w*:.*${hash}[\\s\\S]*?}`, 'g'));
+    insertAt = noChildInsertAt[0].length - String(hash).length - 1;
+    newRoute = `,routes: [{${newRoute.substr(1)}]`;
+  }
   else
   {
-    insertAt += (pathObjStr[0].indexOf('routes: [') - 1);
+    const withChildInsertAt = rteWithHash.match(new RegExp(`[\\s\\S]*\\w.*${hash}[\\s\\S]*?routes.*\\[`, 'g'));
+    insertAt = withChildInsertAt[0].length - String(hash).length;
+
     newRoute += ',';
   }
 
@@ -114,7 +208,7 @@ function addNestedRoute()
 
   console.log(chalk.magenta('-- route configured'));
   console.log(chalk.white.bgBlack.bold(' created route object\n%s '), newRoute);
-  // console.log(newRouteObj);
+
   return newRouteObj;
 }
 
@@ -124,6 +218,13 @@ function insertIntoRoutes(i, s)
 function tidyRoutes()
 {
   console.log(chalk.magenta('-- tidying up generated code '));
+
+  const serverPath = (compOpts.pathOverride)
+    ? compOpts.pathOverride.replace('/', '') : compOpts.path.replace('/', '');
+
+  console.log(chalk.black.bold.bgYellow(' If server side routes are needed, run:    '));
+  console.log(chalk.black.bold.bgYellow(`\t$ mlnck-mern sroute ${serverPath} `));
+
   return (sh.which('yarn'))
     ? sh.exec(`yarn eslint --fix ${basePath}/client/routes.js`)
     : sh.exec(`npm run eslint --fix ${basePath}/client/routes.js`);

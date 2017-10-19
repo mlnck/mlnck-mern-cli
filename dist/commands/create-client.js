@@ -42,6 +42,10 @@ function createFile()
     {
       console.log(chalk.magenta('-- without state: '));
       configuredData = configuredData.replace(/class\sXxx.*React.Component/g, '');
+      configuredData = configuredData.replace(/[\s\S].*constructor.*[\s\S]*?}/g, '');
+      configuredData = configuredData.replace(/[\s\S].*Mount().*[\s\S]*?}/g, '');
+      configuredData = configuredData.replace(/[\s\S].*import actions.*[\s\S]*.?tor\';/g, ''); // eslint-disable-line
+      configuredData = configuredData.replace(/[\s\S].*connect.*/g, '');
       configuredData = configuredData.replace(/export\sfu[\s\S]*.?/g, '');
     }
     fs.writeFileSync(`${compOpts.destDir}index.js`, configuredData);
@@ -80,7 +84,8 @@ function handleActions()
   else
   {
     console.log(chalk.magenta('removing saga: '));
-    fs.unlinkSync(`${compOpts.destDir}/state/sagas.js`);
+    if(fs.existsSync(`${compOpts.destDir}/state/sagas.js`))
+    { fs.unlinkSync(`${compOpts.destDir}/state/sagas.js`); }
   }
   handleJsStyled();
 }
@@ -90,6 +95,10 @@ function handleJsStyled()
   if(compOpts.styled)
   {
     console.log(chalk.magenta('adding js styles: '));
+    let compData = fs.readFileSync(`${compOpts.destDir}index.js`, 'utf8');
+    compData = compData.replace(/div>/g, 'StyledXxx>');
+    fs.writeFileSync(`${compOpts.destDir}index.js`, compData);
+
     sh.cp(`${compOpts.templatePath}StyledXxx.js`, `${compOpts.destDir}Styled${compOpts.nameCapitalized}.js`);
     let styledData = fs.readFileSync(`${compOpts.destDir}Styled${compOpts.nameCapitalized}.js`, 'utf8');
     styledData = styledData.replace(/StyledXxx/g, `Styled${compOpts.nameCapitalized}`);
@@ -114,7 +123,10 @@ function renameTemplates()
 function handleRoute()
 {
   if(compOpts.route)
-  { sh.exec(`mlnck-mern croute /${compOpts.nameCapitalized}`); }
+  {
+    console.log(chalk.black.bold.bgYellow(' Remember to  run:    '));
+    console.log(chalk.black.bold.bgYellow(`\t$ mlnck-mern croute /${compOpts.nameCapitalized}`));
+  }
 }
 
 module.exports = createClient;
