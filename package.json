@@ -1,6 +1,6 @@
 {
   "name": "mlnck-mern-cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CLI for use with mlnck-mern boilerplate",
   "bin": {
     "mlnck-mern": "./dist/index.js"
