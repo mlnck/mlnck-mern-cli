@@ -1,23 +1,19 @@
-
-
-const _extends = Object.assign || function (target){ for(let i = 1; i < arguments.length; i++){ const source = arguments[i]; for(const key in source){ if(Object.prototype.hasOwnProperty.call(source, key)){ target[key] = source[key]; } } } return target; };
-
-let chalk = require('chalk'),
+const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
-  _require = require('../utils'),
-  delDir = _require.delDir,
+  { delDir } = require('../utils'),
   removeSample = require('./remove-sample'),
+
   basePath = process.env.PWD,
   projName = basePath.split('/').pop();
-
 
 let userOpts = {};
 
 function installStack(answers)
 {
-  userOpts = _extends({}, answers, { n: projName });
+  userOpts = { ...answers, n: projName };
   console.log(chalk.green.bgBlackBright.bold(' creating project %s'), userOpts.n);
+
 
   rewritePackage();
 }
@@ -26,15 +22,19 @@ function rewritePackage()
 {
   console.log(chalk.magenta('updating package.json '));
   let jsonData = fs.readFileSync(`${basePath}/package.json`, 'utf8');
-  jsonData = jsonData.replace(/\"s.*;",[\s]*?\s*/g, '') // eslint-disable-line
-    .replace(':aftercreate', '').replace('"mlnckmern"', `"${userOpts.n}"`).replace('"mlnck"', `"${userOpts.author}"`);
+  jsonData = jsonData
+    .replace(/\"s.*;",[\s]*?\s*/g, '') // eslint-disable-line
+    .replace(':aftercreate', '')
+    .replace('"mlnckmern"', `"${userOpts.n}"`)
+    .replace('"mlnck"', `"${userOpts.author}"`);
   fs.writeFileSync(`${basePath}/package.json`, jsonData);
   handleOptional();
 }
 
 function handleOptional()
 {
-  console.log(chalk.underline(userOpts.optional ? 'adding ' : 'removing ') + chalk.magenta(' optional components'));
+  console.log(chalk.underline((userOpts.optional) ? 'adding ' : 'removing ') +
+                chalk.magenta(' optional components'));
 
   const optPath = `${basePath}/client/components/optionalelements`;
   if(userOpts.optional)
@@ -55,9 +55,7 @@ function handleOptional()
   delDir(optPath);
 
   if(!userOpts.sample)
-  {
-    removeSample();
-  }
+  { removeSample(); }
 
   installPackages();
 }

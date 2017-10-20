@@ -1,11 +1,7 @@
-
-
-let chalk = require('chalk'),
+const chalk = require('chalk'),
   sh = require('shelljs'),
-  _require = require('../utils'),
-  verifyUniqueFile = _require.verifyUniqueFile,
+  { verifyUniqueFile } = require('../utils'),
   basePath = process.env.PWD;
-
 
 function gitPull(s)
 {

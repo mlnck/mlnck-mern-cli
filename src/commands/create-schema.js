@@ -1,18 +1,13 @@
-
-
-let chalk = require('chalk'),
+const chalk = require('chalk'),
   sh = require('shelljs'),
-  _require = require('../utils'),
-  templateRename = _require.templateRename,
-  verifyUniqueFile = _require.verifyUniqueFile,
+  { templateRename, verifyUniqueFile } = require('../utils'),
   basePath = process.env.PWD;
-
 
 function createSchema(schemaName)
 {
   const schemaNameArr = schemaName.split('.');
-  schemaName = schemaNameArr[0].toLowerCase() + '.model.js'; //eslint-disable-line
-  let schemaRoot = `${basePath}/server/models`,
+  schemaName = schemaNameArr[0].toLowerCase() + '.model.js';//eslint-disable-line
+  const schemaRoot = `${basePath}/server/models`,
     schemaFile = `${schemaRoot}/${schemaName}`;
   verifyUniqueFile(schemaFile);
 

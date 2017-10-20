@@ -1,15 +1,8 @@
-
-
-const _extends = Object.assign || function (target){ for(let i = 1; i < arguments.length; i++){ const source = arguments[i]; for(const key in source){ if(Object.prototype.hasOwnProperty.call(source, key)){ target[key] = source[key]; } } } return target; };
-
-let chalk = require('chalk'),
+const chalk = require('chalk'),
   fs = require('fs'),
   sh = require('shelljs'),
-  _require = require('../utils'),
-  templateRename = _require.templateRename,
-  verifyUniqueFile = _require.verifyUniqueFile,
+  { templateRename, verifyUniqueFile } = require('../utils'),
   basePath = process.env.PWD;
-
 
 let compOpts = {};
 
@@ -17,7 +10,7 @@ function createClient(obj)
 {
   const tmpNameFirst = obj.name.charAt(0).toUpperCase();
 
-  compOpts = _extends({}, obj);
+  compOpts = { ...obj };
   compOpts.nameCapitalized = tmpNameFirst + obj.name.substr(1);
   compOpts.nameLowercase = tmpNameFirst.toLowerCase() + obj.name.substr(1);
   compOpts.destDir = `${basePath}/client/${compOpts.type}s/${compOpts.nameCapitalized}/`;
@@ -83,16 +76,16 @@ function handleActions()
     console.log(chalk.magenta('configuring saga: '));
     let storeSaga = fs.readFileSync(`${basePath}/client/store.js`, 'utf8');
     storeSaga = storeSaga.replace('// Sagas', `// Sagas\nsagaMiddleware.run(${compOpts.nameLowercase}Saga);`);
-    storeSaga = storeSaga.replace('const sagaMiddleware', `import ${compOpts.nameLowercase}Saga from './${compOpts.type}s/${compOpts.nameCapitalized}/state/sagas';\n                                      \n\nconst sagaMiddleware`);
+    storeSaga = storeSaga.replace('const sagaMiddleware',
+      `import ${compOpts.nameLowercase}Saga from './${compOpts.type}s/${compOpts.nameCapitalized}/state/sagas';
+                                      \n\nconst sagaMiddleware`);
     fs.writeFileSync(`${basePath}/client/store.js`, storeSaga);
   }
   else
   {
     console.log(chalk.magenta('removing saga: '));
     if(fs.existsSync(`${compOpts.destDir}/state/sagas.js`))
-    {
-      fs.unlinkSync(`${compOpts.destDir}/state/sagas.js`);
-    }
+    { fs.unlinkSync(`${compOpts.destDir}/state/sagas.js`); }
   }
   handleJsStyled();
 }
