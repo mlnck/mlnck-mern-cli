@@ -159,7 +159,7 @@ mlnckMern.command('new-element').alias('new').description('create paths, contain
   inquirer.prompt(createClientQuestions).then((answers) =>
   {
     answers.name = name; // eslint-disable-line
-    console.log('answers:', answers);
+    //console.log('answers:', answers);
     createClient(answers);
     process.exit(0);
   });
